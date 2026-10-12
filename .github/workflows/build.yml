@@ -6,7 +6,12 @@ on:
     tags: ['v*']
   pull_request:
     branches: [main]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Publish installers as this GitHub Release tag (e.g. v0.1.0). Leave blank to just build, without releasing.'
+        required: false
+        default: ''
 
 jobs:
   build:
@@ -67,7 +72,7 @@ jobs:
 
   release:
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -85,6 +90,10 @@ jobs:
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          # Tag-triggered pushes release under the pushed tag; a manual
+          # workflow_dispatch run releases under whatever tag was given as input
+          # (action-gh-release creates the tag at the built commit if it doesn't exist yet).
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || inputs.release_tag }}
           files: release-assets/*
           generate_release_notes: true
           draft: false
