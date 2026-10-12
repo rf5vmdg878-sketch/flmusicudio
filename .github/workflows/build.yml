@@ -37,14 +37,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          # No package-lock.json is committed yet (this project was scaffolded in a
+          # sandbox with no npm registry access to generate one), so there's no
+          # lockfile to key dependency caching off of or to `npm ci` against.
+          # TODO: once a lockfile is committed, switch this back to `cache: npm`
+          # and the install step below back to `npm ci` for reproducible, cached installs.
 
       - name: Install rpmbuild (for the Linux .rpm target)
         if: matrix.platform == 'linux'
         run: sudo apt-get update && sudo apt-get install -y rpm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Typecheck
         run: npm run typecheck
