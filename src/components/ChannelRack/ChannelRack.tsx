@@ -1,7 +1,16 @@
 import { useMemo, useState } from 'react';
 import { useProjectStore } from '@/state/store';
 import { audioEngine } from '@/audio/AudioEngine';
-import { DEFAULT_DRUM_KIT, SYNTH_PRESETS, makeSamplerForGenerator } from '@/presets/instruments';
+import {
+  ADDITIVE_PRESETS,
+  DEFAULT_DRUM_KIT,
+  FM_SYNTH_PRESETS,
+  NOISE_PRESETS,
+  SYNTH_PRESETS,
+  WAVETABLE_PRESETS,
+  makeSamplerForGenerator,
+  makeSlicerForSample,
+} from '@/presets/instruments';
 import { InstrumentEditor } from './InstrumentEditor';
 import './ChannelRack.css';
 
@@ -23,6 +32,7 @@ export function ChannelRack(): JSX.Element {
   const setChannelPan = useProjectStore((s) => s.setChannelPan);
   const removeChannel = useProjectStore((s) => s.removeChannel);
   const addChannel = useProjectStore((s) => s.addChannel);
+  const addSample = useProjectStore((s) => s.addSample);
   const addPattern = useProjectStore((s) => s.addPattern);
   const renamePattern = useProjectStore((s) => s.renamePattern);
 
@@ -53,6 +63,37 @@ export function ChannelRack(): JSX.Element {
 
   const handleAddSynth = (preset: (typeof SYNTH_PRESETS)[number]): void => {
     addChannel(preset.name, preset.color, preset.params, synthsTrack.id, true);
+    setShowAddMenu(false);
+  };
+
+  const handleAddFm = (preset: (typeof FM_SYNTH_PRESETS)[number]): void => {
+    addChannel(preset.name, preset.color, preset.params, synthsTrack.id, true);
+    setShowAddMenu(false);
+  };
+
+  const handleAddWavetable = (preset: (typeof WAVETABLE_PRESETS)[number]): void => {
+    addChannel(preset.name, preset.color, preset.params, synthsTrack.id, true);
+    setShowAddMenu(false);
+  };
+
+  const handleAddNoise = (preset: (typeof NOISE_PRESETS)[number]): void => {
+    addChannel(preset.name, preset.color, preset.params, drumsTrack.id, false);
+    setShowAddMenu(false);
+  };
+
+  const handleAddAdditive = (preset: (typeof ADDITIVE_PRESETS)[number]): void => {
+    addChannel(preset.name, preset.color, preset.params, synthsTrack.id, true);
+    setShowAddMenu(false);
+  };
+
+  const handleAddSliceDeck = async (): Promise<void> => {
+    if (!window.beatForge) return;
+    const result = await window.beatForge.importSamples();
+    if (!result.ok || result.files.length === 0) return;
+    const file = result.files[0];
+    const sampleId = `slice-${Date.now()}`;
+    addSample(sampleId, file.name, `data:audio/wav;base64,${file.data}`);
+    addChannel(`Slice Deck: ${file.name}`, '#ff922b', makeSlicerForSample(sampleId, 8), drumsTrack.id, true);
     setShowAddMenu(false);
   };
 
@@ -166,6 +207,48 @@ export function ChannelRack(): JSX.Element {
                 <div className="add-menu-title">Synth Presets</div>
                 {SYNTH_PRESETS.map((p) => (
                   <button key={p.name} className="add-menu-item" onClick={() => handleAddSynth(p)}>
+                    <span className="swatch" style={{ background: p.color }} /> {p.name}
+                  </button>
+                ))}
+              </div>
+              <div className="add-menu-col">
+                <div className="add-menu-title">FM Core Presets</div>
+                {FM_SYNTH_PRESETS.map((p) => (
+                  <button key={p.name} className="add-menu-item" onClick={() => handleAddFm(p)}>
+                    <span className="swatch" style={{ background: p.color }} /> {p.name}
+                  </button>
+                ))}
+                <div className="add-menu-title" style={{ marginTop: 10 }}>
+                  Wave Loom Presets
+                </div>
+                {WAVETABLE_PRESETS.map((p) => (
+                  <button key={p.name} className="add-menu-item" onClick={() => handleAddWavetable(p)}>
+                    <span className="swatch" style={{ background: p.color }} /> {p.name}
+                  </button>
+                ))}
+                {window.beatForge && (
+                  <>
+                    <div className="add-menu-title" style={{ marginTop: 10 }}>
+                      Sample-based
+                    </div>
+                    <button className="add-menu-item" onClick={handleAddSliceDeck}>
+                      <span className="swatch" style={{ background: '#ff922b' }} /> Slice Deck (import sample)
+                    </button>
+                  </>
+                )}
+              </div>
+              <div className="add-menu-col">
+                <div className="add-menu-title">Noise Forge Presets</div>
+                {NOISE_PRESETS.map((p) => (
+                  <button key={p.name} className="add-menu-item" onClick={() => handleAddNoise(p)}>
+                    <span className="swatch" style={{ background: p.color }} /> {p.name}
+                  </button>
+                ))}
+                <div className="add-menu-title" style={{ marginTop: 10 }}>
+                  Harmonic Rig Presets
+                </div>
+                {ADDITIVE_PRESETS.map((p) => (
+                  <button key={p.name} className="add-menu-item" onClick={() => handleAddAdditive(p)}>
                     <span className="swatch" style={{ background: p.color }} /> {p.name}
                   </button>
                 ))}

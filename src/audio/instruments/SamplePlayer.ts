@@ -5,6 +5,11 @@ export interface SampleAdsr {
   release: number;
 }
 
+export interface BufferRange {
+  offsetSeconds: number;
+  durationSeconds: number;
+}
+
 export function triggerSampleBuffer(
   ctx: BaseAudioContext,
   destination: AudioNode,
@@ -15,12 +20,15 @@ export function triggerSampleBuffer(
   velocity: number,
   loop: boolean,
   adsr: SampleAdsr,
+  /** Slice Deck mode: play only this sub-range of the buffer, scaled by
+   * playbackRate same as any other note. Omit to play the whole buffer. */
+  range?: BufferRange,
 ): void {
   const v = Math.max(0.05, Math.min(1, velocity));
   const src = ctx.createBufferSource();
   src.buffer = buffer;
   src.playbackRate.value = playbackRate;
-  src.loop = loop;
+  src.loop = loop && !range;
 
   const gain = ctx.createGain();
   const releaseStart = time + Math.max(durationSeconds, adsr.attack + adsr.decay + 0.01);
@@ -33,7 +41,11 @@ export function triggerSampleBuffer(
 
   src.connect(gain);
   gain.connect(destination);
-  src.start(time);
+  if (range) {
+    src.start(time, range.offsetSeconds, range.durationSeconds);
+  } else {
+    src.start(time);
+  }
   src.stop(releaseStart + adsr.release + 0.05);
 }
 

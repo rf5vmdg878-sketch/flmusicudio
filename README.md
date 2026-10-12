@@ -23,21 +23,57 @@ a playlist for song arrangement, and a mixer with effect inserts.
 
 - **Step sequencer (Channel Rack)** — per-channel step grids, mute/solo, volume/pan, multiple
   patterns.
-- **Piano roll** — note drawing/deleting/resizing for melodic (synth) channels.
+- **Piano roll** — note drawing/deleting/resizing for melodic channels.
 - **Playlist** — arrange patterns onto song tracks; move/resize/delete blocks; song-mode
   playback loops the arrangement.
 - **Mixer** — per-track fader/pan/mute/solo, insert effect slots, master bus.
-- **Built-in instrument packages**:
-  - A full drum kit (kick, snare, closed/open hi-hat, clap, toms, rim, crash, shaker) —
-    every sound is **synthesized procedurally in code**, not sampled, so it ships
-    royalty-free and can be freely re-pitched/reshaped.
-  - A 2-oscillator subtractive synth engine with five starter presets (Sub Bass, Saw Lead,
-    Warm Pad, Pluck, Electric Keys) — new presets are just parameter sets, no new code needed.
-  - A sampler channel that can import your own WAV/MP3/OGG/FLAC/AIFF files (desktop app only).
-- **Insert effects**: 3-band EQ, delay, algorithmic reverb, distortion, limiter — all
-  implemented directly on Web Audio nodes (no external plugin format).
 - **Export**: render the current pattern or full song to a 16-bit WAV file.
 - **Project save/load** as JSON, via native file dialogs in the desktop app.
+
+## Plugin catalog
+
+Every instrument and effect below is an original implementation running on native Web Audio
+nodes — nothing here is sampled from, modeled on, or copied from any third-party plugin's DSP,
+UI, or branding (see [About the name](#about-the-name-and-fl-studio)). Each is a thin parameter
+set over a shared engine (`src/audio/instruments/`, `src/audio/effects/insertNodes.ts`), so
+adding a new preset is just data — see [Extending it](#extending-it).
+
+### Instruments
+
+| Plugin | Engine | Notes |
+| --- | --- | --- |
+| **Drum Kit** | 10 procedurally synthesized drums (kick, snare, closed/open hi-hat, clap, low/high tom, rim, crash, shaker) | No bundled samples — every hit is generated in code, so the kit ships royalty-free and is freely re-pitchable. |
+| **Synth** | 2-oscillator subtractive engine with filter + envelope | 5 starter presets: Sub Bass, Saw Lead, Warm Pad, Pluck, Electric Keys. |
+| **FM Core** | 2-operator FM (carrier + modulator, independent brightness envelope) | 3 presets: FM Bell, FM E-Piano, FM Growl Bass. |
+| **Wave Loom** | Wavetable synth over 4 original hand-authored harmonic tables, with scan position + unison | 4 presets: Organic, Glassy, Buzzy, Hollow. |
+| **Harmonic Rig** | Additive/drawbar synth — one sine oscillator per harmonic, individually leveled | 3 presets: Organ, Bell Stack, Mellow Fifths. |
+| **Noise Forge** | White/pink/brown noise generator through a filter + envelope | 3 presets, one per noise color — risers, hats, texture FX. |
+| **Slice Deck** | Samples an imported file into N equal slices, played per piano-roll note | Imports WAV/MP3/OGG/FLAC/AIFF (desktop app only). |
+| **Sampler** | Plain one-shot/looped sample playback with pitch, ADSR and gain | Also desktop-only import. |
+
+### Insert effects (mixer plugin slots)
+
+| Plugin | Type | Notes |
+| --- | --- | --- |
+| **EQ (3-band)** | Fixed-frequency low/mid/high shelving+peaking EQ | |
+| **Parametric EQ** | 4 fully adjustable bands (freq/gain/Q/shelf-or-peak each) | |
+| **Delay** | Feedback delay with wet/dry mix | |
+| **Ping-Pong Delay** | Stereo delay bouncing between L/R with cross-feedback | |
+| **Reverb** | Algorithmic reverb (procedurally generated impulse response, no IR samples) | |
+| **Chorus Lab** | Short LFO-modulated delay for doubling/thickening | |
+| **Flanger** | Short feedback-delay comb filter, LFO-swept | Distinct from Chorus Lab by its feedback path and shorter delay. |
+| **Phase Drift** | Cascade of LFO-modulated all-pass filters with feedback | |
+| **Tremolo** | Amplitude LFO | |
+| **Auto-Pan** | Stereo-position LFO | |
+| **Ring Modulator** | Carrier-oscillator amplitude modulation (true ring mod via an AudioParam-driven gain) | |
+| **Distortion** | Waveshaper hard-drive distortion | |
+| **Saturator** | Soft tanh-based tape/tube-style saturation with a warmth-scaled high rolloff | |
+| **Crush Box** | Amplitude bit-depth reduction (1–16 bit) | |
+| **Stereo Field** | Mid/side width control | |
+| **Dyna Press** | General-purpose dynamics compressor with makeup gain | |
+| **Multiband Dyna Press** | 3-band (Linkwitz-Riley-style crossover) compressor, independent threshold/ratio per band | |
+| **Gate** | Amplitude-threshold noise gate | |
+| **Limiter** | Brick-wall limiter for the master bus | |
 
 ## Architecture
 

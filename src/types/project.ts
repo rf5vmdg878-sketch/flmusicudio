@@ -33,9 +33,16 @@ export type DrumGeneratorId =
   | 'crash'
   | 'perc-shaker';
 
+export type SamplerSource =
+  | { type: 'generator'; generatorId: DrumGeneratorId }
+  | { type: 'sample'; sampleId: string; rootNote: number }
+  /** Slice Deck mode: chops the sample into equal slices. `baseNote` plays
+   * slice 0, `baseNote + 1` plays slice 1, and so on. */
+  | { type: 'slice'; sampleId: string; sliceCount: number; baseNote: number };
+
 export interface SamplerParams {
   kind: 'sampler';
-  source: { type: 'generator'; generatorId: DrumGeneratorId } | { type: 'sample'; sampleId: string; rootNote: number };
+  source: SamplerSource;
   gain: number;
   pan: number;
   pitchSemitones: number;
@@ -46,7 +53,65 @@ export interface SamplerParams {
   loop: boolean;
 }
 
-export type InstrumentParams = SynthParams | SamplerParams;
+/** FM Core: a 2-operator FM synth (one carrier, one modulator). */
+export interface FmSynthParams {
+  kind: 'fm';
+  modulatorRatio: number; // modulator frequency = carrier frequency * this ratio
+  modulationIndex: number; // base modulation depth in Hz-equivalent
+  modIndexEnvAmount: number; // -1..1, how much the envelope swings modulation index (brightness envelope)
+  attack: number;
+  decay: number;
+  sustain: number; // 0..1
+  release: number;
+}
+
+export type WavetableShape = 'organic' | 'glassy' | 'buzzy' | 'hollow';
+
+/** Wave Loom: plays back one of a small set of original, procedurally defined
+ * harmonic wavetables, with a scan position that crossfades between two
+ * harmonic variants of the chosen table for a classic "wavetable morph" feel. */
+export interface WavetableSynthParams {
+  kind: 'wavetable';
+  tableId: WavetableShape;
+  tablePosition: number; // 0..1, crossfades between the table's two harmonic variants
+  filterType: BiquadFilterType;
+  filterCutoffHz: number;
+  filterResonanceQ: number;
+  attack: number;
+  decay: number;
+  sustain: number;
+  release: number;
+  unisonVoices: number; // 1..5 detuned stacked voices
+  unisonDetuneCents: number;
+}
+
+export type NoiseColor = 'white' | 'pink' | 'brown';
+
+/** Noise Forge: filtered/enveloped noise for hats, risers, textures and FX. */
+export interface NoiseSynthParams {
+  kind: 'noise';
+  color: NoiseColor;
+  filterType: BiquadFilterType;
+  filterCutoffHz: number;
+  filterResonanceQ: number;
+  attack: number;
+  decay: number;
+  sustain: number;
+  release: number;
+}
+
+/** Harmonic Rig: a drawbar-style additive synth — a fixed set of harmonic
+ * oscillators (fundamental + overtones) each with its own level. */
+export interface AdditiveSynthParams {
+  kind: 'additive';
+  harmonicLevels: number[]; // level 0..1 per harmonic, index 0 = fundamental
+  attack: number;
+  decay: number;
+  sustain: number;
+  release: number;
+}
+
+export type InstrumentParams = SynthParams | SamplerParams | FmSynthParams | WavetableSynthParams | NoiseSynthParams | AdditiveSynthParams;
 
 export interface Channel {
   id: string;
@@ -96,13 +161,87 @@ export interface PlaylistBlock {
   lengthBars: number;
 }
 
-export type InsertEffectType = 'eq3' | 'delay' | 'reverb' | 'limiter' | 'distortion';
+export type InsertEffectType =
+  | 'eq3'
+  | 'delay'
+  | 'reverb'
+  | 'limiter'
+  | 'distortion'
+  | 'parametric_eq'
+  | 'chorus'
+  | 'phaser'
+  | 'bitcrusher'
+  | 'stereo_widener'
+  | 'compressor'
+  | 'flanger'
+  | 'tremolo'
+  | 'autopan'
+  | 'gate'
+  | 'multiband_compressor'
+  | 'saturator'
+  | 'pingpong_delay'
+  | 'ringmod';
 
 export interface Eq3Params {
   type: 'eq3';
   lowGainDb: number;
   midGainDb: number;
   highGainDb: number;
+}
+
+export interface EqBand {
+  freqHz: number;
+  gainDb: number;
+  q: number;
+  filterType: 'lowshelf' | 'peaking' | 'highshelf';
+}
+
+/** Parametric EQ: four fully adjustable bands (frequency, gain, and Q each
+ * editable), vs. the fixed-frequency 3-band EQ. */
+export interface ParametricEqParams {
+  type: 'parametric_eq';
+  bands: [EqBand, EqBand, EqBand, EqBand];
+}
+
+/** Chorus Lab: short, LFO-modulated delay for thickening/doubling. */
+export interface ChorusParams {
+  type: 'chorus';
+  rateHz: number;
+  depthMs: number;
+  mix: number;
+}
+
+/** Phase Drift: a cascade of LFO-modulated all-pass filters with feedback. */
+export interface PhaserParams {
+  type: 'phaser';
+  rateHz: number;
+  depth: number; // 0..1
+  feedback: number; // 0..0.9
+  stages: number; // number of all-pass stages
+  mix: number;
+}
+
+/** Crush Box: amplitude bit-depth reduction (lo-fi/digital-crunch effect). */
+export interface BitcrusherParams {
+  type: 'bitcrusher';
+  bitDepth: number; // 1..16
+  mix: number;
+}
+
+/** Stereo Field: mid/side width control. */
+export interface StereoWidenerParams {
+  type: 'stereo_widener';
+  width: number; // 0 = mono, 1 = unity, 2 = extra wide
+}
+
+/** Dyna Press: general-purpose dynamics compressor. */
+export interface CompressorParams {
+  type: 'compressor';
+  thresholdDb: number;
+  ratio: number;
+  attackSeconds: number;
+  releaseSeconds: number;
+  makeupGainDb: number;
 }
 
 export interface DelayParams {
@@ -130,7 +269,90 @@ export interface DistortionParams {
   mix: number;
 }
 
-export type InsertEffectParams = Eq3Params | DelayParams | ReverbParams | LimiterParams | DistortionParams;
+/** Flanger: short feedback-delay comb filter, LFO-swept (distinct from Chorus
+ * Lab's longer, feedback-free modulated delay). */
+export interface FlangerParams {
+  type: 'flanger';
+  rateHz: number;
+  depthMs: number;
+  feedback: number; // 0..0.9
+  mix: number;
+}
+
+export interface TremoloParams {
+  type: 'tremolo';
+  rateHz: number;
+  depth: number; // 0..1
+}
+
+export interface AutoPanParams {
+  type: 'autopan';
+  rateHz: number;
+  depth: number; // 0..1
+}
+
+/** A static (envelope-free) noise gate implemented as an amplitude transfer
+ * curve: signal below the threshold is zeroed. */
+export interface GateParams {
+  type: 'gate';
+  thresholdDb: number;
+}
+
+export interface MultibandCompressorParams {
+  type: 'multiband_compressor';
+  lowCrossoverHz: number;
+  highCrossoverHz: number;
+  lowThresholdDb: number;
+  lowRatio: number;
+  midThresholdDb: number;
+  midRatio: number;
+  highThresholdDb: number;
+  highRatio: number;
+  makeupGainDb: number;
+}
+
+/** Warm tape/tube-style soft saturation (softer knee than Distortion, plus a
+ * high-frequency rolloff that scales with warmth). */
+export interface SaturatorParams {
+  type: 'saturator';
+  drive: number; // 0..1
+  warmth: number; // 0..1
+  mix: number;
+}
+
+export interface PingPongDelayParams {
+  type: 'pingpong_delay';
+  timeSeconds: number;
+  feedback: number; // 0..0.95
+  mix: number;
+}
+
+export interface RingModParams {
+  type: 'ringmod';
+  frequencyHz: number;
+  mix: number;
+}
+
+export type InsertEffectParams =
+  | Eq3Params
+  | DelayParams
+  | ReverbParams
+  | LimiterParams
+  | DistortionParams
+  | ParametricEqParams
+  | ChorusParams
+  | PhaserParams
+  | BitcrusherParams
+  | StereoWidenerParams
+  | CompressorParams
+  | FlangerParams
+  | TremoloParams
+  | AutoPanParams
+  | GateParams
+  | MultibandCompressorParams
+  | SaturatorParams
+  | PingPongDelayParams
+  | RingModParams;
 
 export interface InsertEffect {
   id: string;

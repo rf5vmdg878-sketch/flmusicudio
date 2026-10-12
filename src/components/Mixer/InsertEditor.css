@@ -29,3 +29,21 @@
 .insert-editor-body {
   padding: 10px;
 }
+
+.eq-band {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.eq-band:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.eq-band-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-2);
+  margin-bottom: 4px;
+}

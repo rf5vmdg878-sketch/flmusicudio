@@ -12,13 +12,74 @@ export function defaultEffectParams(type: InsertEffectType): InsertEffectParams 
       return { type: 'limiter', thresholdDb: -6, releaseSeconds: 0.2 };
     case 'distortion':
       return { type: 'distortion', drive: 0.3, mix: 0.5 };
+    case 'parametric_eq':
+      return {
+        type: 'parametric_eq',
+        bands: [
+          { freqHz: 120, gainDb: 0, q: 0.7, filterType: 'lowshelf' },
+          { freqHz: 800, gainDb: 0, q: 1, filterType: 'peaking' },
+          { freqHz: 2500, gainDb: 0, q: 1, filterType: 'peaking' },
+          { freqHz: 8000, gainDb: 0, q: 0.7, filterType: 'highshelf' },
+        ],
+      };
+    case 'chorus':
+      return { type: 'chorus', rateHz: 1.2, depthMs: 5, mix: 0.4 };
+    case 'phaser':
+      return { type: 'phaser', rateHz: 0.5, depth: 0.6, feedback: 0.3, stages: 6, mix: 0.5 };
+    case 'bitcrusher':
+      return { type: 'bitcrusher', bitDepth: 8, mix: 1 };
+    case 'stereo_widener':
+      return { type: 'stereo_widener', width: 1.4 };
+    case 'compressor':
+      return { type: 'compressor', thresholdDb: -18, ratio: 4, attackSeconds: 0.01, releaseSeconds: 0.2, makeupGainDb: 3 };
+    case 'flanger':
+      return { type: 'flanger', rateHz: 0.25, depthMs: 2, feedback: 0.4, mix: 0.5 };
+    case 'tremolo':
+      return { type: 'tremolo', rateHz: 5, depth: 0.5 };
+    case 'autopan':
+      return { type: 'autopan', rateHz: 1, depth: 0.7 };
+    case 'gate':
+      return { type: 'gate', thresholdDb: -40 };
+    case 'multiband_compressor':
+      return {
+        type: 'multiband_compressor',
+        lowCrossoverHz: 200,
+        highCrossoverHz: 2500,
+        lowThresholdDb: -20,
+        lowRatio: 3,
+        midThresholdDb: -18,
+        midRatio: 3,
+        highThresholdDb: -16,
+        highRatio: 2.5,
+        makeupGainDb: 2,
+      };
+    case 'saturator':
+      return { type: 'saturator', drive: 0.3, warmth: 0.4, mix: 0.6 };
+    case 'pingpong_delay':
+      return { type: 'pingpong_delay', timeSeconds: 0.3, feedback: 0.4, mix: 0.35 };
+    case 'ringmod':
+      return { type: 'ringmod', frequencyHz: 220, mix: 0.5 };
   }
 }
 
 export const EFFECT_TYPES: { type: InsertEffectType; label: string }[] = [
   { type: 'eq3', label: 'EQ (3-band)' },
+  { type: 'parametric_eq', label: 'Parametric EQ' },
   { type: 'delay', label: 'Delay' },
+  { type: 'pingpong_delay', label: 'Ping-Pong Delay' },
   { type: 'reverb', label: 'Reverb' },
+  { type: 'chorus', label: 'Chorus Lab' },
+  { type: 'flanger', label: 'Flanger' },
+  { type: 'phaser', label: 'Phase Drift' },
+  { type: 'tremolo', label: 'Tremolo' },
+  { type: 'autopan', label: 'Auto-Pan' },
+  { type: 'ringmod', label: 'Ring Modulator' },
   { type: 'distortion', label: 'Distortion' },
+  { type: 'saturator', label: 'Saturator' },
+  { type: 'bitcrusher', label: 'Crush Box' },
+  { type: 'stereo_widener', label: 'Stereo Field' },
+  { type: 'compressor', label: 'Dyna Press' },
+  { type: 'multiband_compressor', label: 'Multiband Dyna Press' },
+  { type: 'gate', label: 'Gate' },
   { type: 'limiter', label: 'Limiter' },
 ];

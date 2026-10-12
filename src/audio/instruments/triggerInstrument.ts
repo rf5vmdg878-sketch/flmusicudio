@@ -2,6 +2,10 @@ import type { InstrumentParams } from '@/types/project';
 import { triggerDrumSound } from './DrumSynth';
 import { triggerSynthNote } from './Synth';
 import { triggerSampleBuffer } from './SamplePlayer';
+import { triggerFmNote } from './FmSynth';
+import { triggerWavetableNote } from './WavetableSynth';
+import { triggerNoiseNote } from './NoiseSynth';
+import { triggerAdditiveNote } from './AdditiveSynth';
 
 export interface TriggerContext {
   ctx: BaseAudioContext;
@@ -21,33 +25,69 @@ export function triggerInstrument(
 ): void {
   const { ctx, destination } = tctx;
 
-  if (instrument.kind === 'synth') {
-    triggerSynthNote(ctx, destination, instrument, time, durationSeconds, midiNote, velocity);
+  switch (instrument.kind) {
+    case 'synth':
+      triggerSynthNote(ctx, destination, instrument, time, durationSeconds, midiNote, velocity);
+      return;
+    case 'fm':
+      triggerFmNote(ctx, destination, instrument, time, durationSeconds, midiNote, velocity);
+      return;
+    case 'wavetable':
+      triggerWavetableNote(ctx, destination, instrument, time, durationSeconds, midiNote, velocity);
+      return;
+    case 'sampler':
+      triggerSampler(tctx, instrument, time, durationSeconds, velocity, midiNote);
+      return;
+    case 'noise':
+      triggerNoiseNote(ctx, destination, instrument, time, durationSeconds, velocity);
+      return;
+    case 'additive':
+      triggerAdditiveNote(ctx, destination, instrument, time, durationSeconds, midiNote, velocity);
+      return;
+  }
+}
+
+function triggerSampler(
+  tctx: TriggerContext,
+  instrument: Extract<InstrumentParams, { kind: 'sampler' }>,
+  time: number,
+  durationSeconds: number,
+  velocity: number,
+  midiNote: number,
+): void {
+  const { ctx, destination } = tctx;
+  const { source } = instrument;
+
+  if (source.type === 'generator') {
+    const pitchFromNote = midiNote === DEFAULT_MIDI_FOR_DRUMS ? 0 : midiNote - DEFAULT_MIDI_FOR_DRUMS;
+    triggerDrumSound(ctx, destination, source.generatorId, time, velocity * instrument.gain, instrument.pitchSemitones + pitchFromNote);
     return;
   }
 
-  // Sampler
-  if (instrument.source.type === 'generator') {
-    const pitchFromNote = midiNote === DEFAULT_MIDI_FOR_DRUMS ? 0 : midiNote - DEFAULT_MIDI_FOR_DRUMS;
-    triggerDrumSound(
+  const buffer = tctx.getSampleBuffer(source.sampleId);
+  if (!buffer) return;
+  const adsr = { attack: instrument.attack, decay: instrument.decay, sustain: instrument.sustain, release: instrument.release };
+
+  if (source.type === 'slice') {
+    const sliceIndex = Math.max(0, Math.min(source.sliceCount - 1, midiNote - source.baseNote));
+    const sliceDuration = buffer.duration / source.sliceCount;
+    const playbackRate = Math.pow(2, instrument.pitchSemitones / 12);
+    triggerSampleBuffer(
       ctx,
       destination,
-      instrument.source.generatorId,
+      buffer,
       time,
+      durationSeconds,
+      playbackRate,
       velocity * instrument.gain,
-      instrument.pitchSemitones + pitchFromNote,
+      false,
+      adsr,
+      { offsetSeconds: sliceIndex * sliceDuration, durationSeconds: sliceDuration },
     );
     return;
   }
 
-  const buffer = tctx.getSampleBuffer(instrument.source.sampleId);
-  if (!buffer) return;
-  const semitoneOffset = instrument.pitchSemitones + (midiNote - instrument.source.rootNote);
+  const semitoneOffset = instrument.pitchSemitones + (midiNote - source.rootNote);
   const playbackRate = Math.pow(2, semitoneOffset / 12);
-  triggerSampleBuffer(ctx, destination, buffer, time, durationSeconds, playbackRate, velocity * instrument.gain, instrument.loop, {
-    attack: instrument.attack,
-    decay: instrument.decay,
-    sustain: instrument.sustain,
-    release: instrument.release,
-  });
+  triggerSampleBuffer(ctx, destination, buffer, time, durationSeconds, playbackRate, velocity * instrument.gain, instrument.loop, adsr);
 }
