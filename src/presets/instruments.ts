@@ -4,6 +4,7 @@ import type {
   FmSynthParams,
   NoiseColor,
   NoiseSynthParams,
+  PluckSynthParams,
   SamplerParams,
   SynthParams,
   WavetableShape,
@@ -341,5 +342,30 @@ export const ADDITIVE_PRESETS: AdditivePreset[] = [
       sustain: 0.8,
       release: 0.9,
     },
+  },
+];
+
+export interface PluckPreset {
+  name: string;
+  color: string;
+  params: PluckSynthParams;
+}
+
+/** Pluck Rig presets: Karplus-Strong plucked-string voicings. */
+export const PLUCK_PRESETS: PluckPreset[] = [
+  {
+    name: 'Pluck Nylon',
+    color: '#f08c00',
+    params: { kind: 'pluck', damping: 0.3, brightness: 0.4, decaySeconds: 1.2, pickPosition: 0.3 },
+  },
+  {
+    name: 'Pluck Steel',
+    color: '#adb5bd',
+    params: { kind: 'pluck', damping: 0.15, brightness: 0.8, decaySeconds: 2.2, pickPosition: 0.7 },
+  },
+  {
+    name: 'Pluck Muted',
+    color: '#5c940d',
+    params: { kind: 'pluck', damping: 0.7, brightness: 0.3, decaySeconds: 0.4, pickPosition: 0.2 },
   },
 ];

@@ -6,6 +6,7 @@ import {
   DEFAULT_DRUM_KIT,
   FM_SYNTH_PRESETS,
   NOISE_PRESETS,
+  PLUCK_PRESETS,
   SYNTH_PRESETS,
   WAVETABLE_PRESETS,
   makeSamplerForGenerator,
@@ -82,6 +83,11 @@ export function ChannelRack(): JSX.Element {
   };
 
   const handleAddAdditive = (preset: (typeof ADDITIVE_PRESETS)[number]): void => {
+    addChannel(preset.name, preset.color, preset.params, synthsTrack.id, true);
+    setShowAddMenu(false);
+  };
+
+  const handleAddPluck = (preset: (typeof PLUCK_PRESETS)[number]): void => {
     addChannel(preset.name, preset.color, preset.params, synthsTrack.id, true);
     setShowAddMenu(false);
   };
@@ -249,6 +255,14 @@ export function ChannelRack(): JSX.Element {
                 </div>
                 {ADDITIVE_PRESETS.map((p) => (
                   <button key={p.name} className="add-menu-item" onClick={() => handleAddAdditive(p)}>
+                    <span className="swatch" style={{ background: p.color }} /> {p.name}
+                  </button>
+                ))}
+                <div className="add-menu-title" style={{ marginTop: 10 }}>
+                  Pluck Rig Presets
+                </div>
+                {PLUCK_PRESETS.map((p) => (
+                  <button key={p.name} className="add-menu-item" onClick={() => handleAddPluck(p)}>
                     <span className="swatch" style={{ background: p.color }} /> {p.name}
                   </button>
                 ))}

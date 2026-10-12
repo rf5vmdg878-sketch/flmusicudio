@@ -6,6 +6,7 @@ import { triggerFmNote } from './FmSynth';
 import { triggerWavetableNote } from './WavetableSynth';
 import { triggerNoiseNote } from './NoiseSynth';
 import { triggerAdditiveNote } from './AdditiveSynth';
+import { triggerPluckNote } from './PluckSynth';
 
 export interface TriggerContext {
   ctx: BaseAudioContext;
@@ -43,6 +44,9 @@ export function triggerInstrument(
       return;
     case 'additive':
       triggerAdditiveNote(ctx, destination, instrument, time, durationSeconds, midiNote, velocity);
+      return;
+    case 'pluck':
+      triggerPluckNote(ctx, destination, instrument, time, durationSeconds, midiNote, velocity);
       return;
   }
 }

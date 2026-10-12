@@ -85,6 +85,17 @@ export interface WavetableSynthParams {
   unisonDetuneCents: number;
 }
 
+/** Pluck Rig: a Karplus-Strong physically modeled plucked string — a short
+ * filtered noise burst excites a pitched feedback delay loop that decays
+ * naturally over time, the way a real plucked string does. */
+export interface PluckSynthParams {
+  kind: 'pluck';
+  damping: number; // 0..1, how quickly the feedback loop loses energy (higher = darker/shorter)
+  brightness: number; // 0..1, tone of the initial excitation burst
+  decaySeconds: number; // overall string decay time
+  pickPosition: number; // 0..1, shapes the excitation burst's initial filtering
+}
+
 export type NoiseColor = 'white' | 'pink' | 'brown';
 
 /** Noise Forge: filtered/enveloped noise for hats, risers, textures and FX. */
@@ -111,7 +122,14 @@ export interface AdditiveSynthParams {
   release: number;
 }
 
-export type InstrumentParams = SynthParams | SamplerParams | FmSynthParams | WavetableSynthParams | NoiseSynthParams | AdditiveSynthParams;
+export type InstrumentParams =
+  | SynthParams
+  | SamplerParams
+  | FmSynthParams
+  | WavetableSynthParams
+  | NoiseSynthParams
+  | AdditiveSynthParams
+  | PluckSynthParams;
 
 export interface Channel {
   id: string;
@@ -178,6 +196,10 @@ export type InsertEffectType =
   | 'autopan'
   | 'gate'
   | 'multiband_compressor'
+  | 'exciter'
+  | 'vinyl_warmth'
+  | 'stereo_delay'
+  | 'resonator'
   | 'saturator'
   | 'pingpong_delay'
   | 'ringmod';
@@ -333,6 +355,45 @@ export interface RingModParams {
   mix: number;
 }
 
+/** Harmonic exciter: generates new upper harmonics from a high-passed copy of
+ * the signal (via saturation) and blends them back in. */
+export interface ExciterParams {
+  type: 'exciter';
+  frequencyHz: number; // high-pass point above which harmonics are generated
+  amount: number; // 0..1
+  mix: number;
+}
+
+/** Vinyl Warmth: a lo-fi combo effect — warmth lowpass, light bit-crush grit,
+ * a slow subtle delay-modulation "wow", and a mixed-in noise floor. */
+export interface VinylWarmthParams {
+  type: 'vinyl_warmth';
+  warmth: number; // 0..1, lowpass darkening
+  grit: number; // 0..1, bit-depth-style quantization amount
+  wobble: number; // 0..1, pitch wobble depth
+  noiseLevel: number; // 0..1, mixed-in surface noise
+  mix: number;
+}
+
+/** Stereo Delay: independent delay time/feedback per channel (vs. Ping-Pong's
+ * cross-feeding bounce). */
+export interface StereoDelayParams {
+  type: 'stereo_delay';
+  leftTimeSeconds: number;
+  rightTimeSeconds: number;
+  feedback: number;
+  mix: number;
+}
+
+/** Resonator: a short feedback delay tuned to a musical pitch, producing a
+ * ringing comb-filter resonance. */
+export interface ResonatorParams {
+  type: 'resonator';
+  frequencyHz: number;
+  resonance: number; // 0..0.98, feedback amount
+  mix: number;
+}
+
 export type InsertEffectParams =
   | Eq3Params
   | DelayParams
@@ -352,7 +413,11 @@ export type InsertEffectParams =
   | MultibandCompressorParams
   | SaturatorParams
   | PingPongDelayParams
-  | RingModParams;
+  | RingModParams
+  | ExciterParams
+  | VinylWarmthParams
+  | StereoDelayParams
+  | ResonatorParams;
 
 export interface InsertEffect {
   id: string;

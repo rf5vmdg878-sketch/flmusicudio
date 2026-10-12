@@ -242,6 +242,37 @@ export function InsertEditor({ trackId, insertId, onClose }: Props): JSX.Element
             <Field label="Makeup" value={insert.params.makeupGainDb} min={0} max={24} onChange={(v) => update({ ...insert.params, makeupGainDb: v })} format={(v) => `${v.toFixed(1)}dB`} />
           </>
         )}
+        {insert.params.type === 'exciter' && (
+          <>
+            <Field label="Frequency" value={insert.params.frequencyHz} min={500} max={10000} onChange={(v) => update({ ...insert.params, frequencyHz: v })} format={(v) => `${v.toFixed(0)}Hz`} />
+            <Field label="Amount" value={insert.params.amount} min={0} max={1} onChange={(v) => update({ ...insert.params, amount: v })} />
+            <Field label="Mix" value={insert.params.mix} min={0} max={1} onChange={(v) => update({ ...insert.params, mix: v })} />
+          </>
+        )}
+        {insert.params.type === 'vinyl_warmth' && (
+          <>
+            <Field label="Warmth" value={insert.params.warmth} min={0} max={1} onChange={(v) => update({ ...insert.params, warmth: v })} />
+            <Field label="Grit" value={insert.params.grit} min={0} max={1} onChange={(v) => update({ ...insert.params, grit: v })} />
+            <Field label="Wobble" value={insert.params.wobble} min={0} max={1} onChange={(v) => update({ ...insert.params, wobble: v })} />
+            <Field label="Noise" value={insert.params.noiseLevel} min={0} max={1} onChange={(v) => update({ ...insert.params, noiseLevel: v })} />
+            <Field label="Mix" value={insert.params.mix} min={0} max={1} onChange={(v) => update({ ...insert.params, mix: v })} />
+          </>
+        )}
+        {insert.params.type === 'stereo_delay' && (
+          <>
+            <Field label="Left Time" value={insert.params.leftTimeSeconds} min={0.01} max={1.2} onChange={(v) => update({ ...insert.params, leftTimeSeconds: v })} format={(v) => `${v.toFixed(2)}s`} />
+            <Field label="Right Time" value={insert.params.rightTimeSeconds} min={0.01} max={1.2} onChange={(v) => update({ ...insert.params, rightTimeSeconds: v })} format={(v) => `${v.toFixed(2)}s`} />
+            <Field label="Feedback" value={insert.params.feedback} min={0} max={0.95} onChange={(v) => update({ ...insert.params, feedback: v })} />
+            <Field label="Mix" value={insert.params.mix} min={0} max={1} onChange={(v) => update({ ...insert.params, mix: v })} />
+          </>
+        )}
+        {insert.params.type === 'resonator' && (
+          <>
+            <Field label="Frequency" value={insert.params.frequencyHz} min={40} max={4000} onChange={(v) => update({ ...insert.params, frequencyHz: v })} format={(v) => `${v.toFixed(0)}Hz`} />
+            <Field label="Resonance" value={insert.params.resonance} min={0} max={0.98} onChange={(v) => update({ ...insert.params, resonance: v })} />
+            <Field label="Mix" value={insert.params.mix} min={0} max={1} onChange={(v) => update({ ...insert.params, mix: v })} />
+          </>
+        )}
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import type {
   NoiseColor,
   NoiseSynthParams,
   OscillatorShape,
+  PluckSynthParams,
   SamplerParams,
   SynthParams,
   WavetableShape,
@@ -87,6 +88,11 @@ export function InstrumentEditor({ channelId, onClose }: Props): JSX.Element | n
     const harmonicLevels = [...instrument.harmonicLevels];
     harmonicLevels[index] = level;
     setChannelInstrument(channel.id, { ...instrument, harmonicLevels });
+  };
+
+  const updatePluck = (patch: Partial<PluckSynthParams>): void => {
+    if (instrument.kind !== 'pluck') return;
+    setChannelInstrument(channel.id, { ...instrument, ...patch });
   };
 
   const handleImportSample = async (): Promise<void> => {
@@ -273,6 +279,18 @@ export function InstrumentEditor({ channelId, onClose }: Props): JSX.Element | n
             <Field label="Decay" value={instrument.decay} min={0} max={2} onChange={(v) => updateAdditive({ decay: v })} format={(v) => `${v.toFixed(2)}s`} />
             <Field label="Sustain" value={instrument.sustain} min={0} max={1} onChange={(v) => updateAdditive({ sustain: v })} />
             <Field label="Release" value={instrument.release} min={0} max={3} onChange={(v) => updateAdditive({ release: v })} format={(v) => `${v.toFixed(2)}s`} />
+          </div>
+        </div>
+      )}
+
+      {instrument.kind === 'pluck' && (
+        <div className="instrument-editor-body scroll">
+          <div className="synth-section">
+            <div className="synth-section-title">Pluck Rig</div>
+            <Field label="Damping" value={instrument.damping} min={0} max={1} onChange={(v) => updatePluck({ damping: v })} />
+            <Field label="Brightness" value={instrument.brightness} min={0} max={1} onChange={(v) => updatePluck({ brightness: v })} />
+            <Field label="Decay" value={instrument.decaySeconds} min={0.1} max={6} onChange={(v) => updatePluck({ decaySeconds: v })} format={(v) => `${v.toFixed(2)}s`} />
+            <Field label="Pick Position" value={instrument.pickPosition} min={0} max={1} onChange={(v) => updatePluck({ pickPosition: v })} />
           </div>
         </div>
       )}

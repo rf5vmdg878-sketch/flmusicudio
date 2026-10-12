@@ -48,6 +48,7 @@ adding a new preset is just data — see [Extending it](#extending-it).
 | **Wave Loom** | Wavetable synth over 4 original hand-authored harmonic tables, with scan position + unison | 4 presets: Organic, Glassy, Buzzy, Hollow. |
 | **Harmonic Rig** | Additive/drawbar synth — one sine oscillator per harmonic, individually leveled | 3 presets: Organ, Bell Stack, Mellow Fifths. |
 | **Noise Forge** | White/pink/brown noise generator through a filter + envelope | 3 presets, one per noise color — risers, hats, texture FX. |
+| **Pluck Rig** | Karplus-Strong physically modeled plucked string (filtered noise burst excites a damped feedback delay loop) | 3 presets: Nylon, Steel, Muted. |
 | **Slice Deck** | Samples an imported file into N equal slices, played per piano-roll note | Imports WAV/MP3/OGG/FLAC/AIFF (desktop app only). |
 | **Sampler** | Plain one-shot/looped sample playback with pitch, ADSR and gain | Also desktop-only import. |
 
@@ -66,10 +67,14 @@ adding a new preset is just data — see [Extending it](#extending-it).
 | **Tremolo** | Amplitude LFO | |
 | **Auto-Pan** | Stereo-position LFO | |
 | **Ring Modulator** | Carrier-oscillator amplitude modulation (true ring mod via an AudioParam-driven gain) | |
+| **Resonator** | Pitch-tuned feedback delay (comb-filter ringing resonance) | |
 | **Distortion** | Waveshaper hard-drive distortion | |
 | **Saturator** | Soft tanh-based tape/tube-style saturation with a warmth-scaled high rolloff | |
+| **Exciter** | Harmonic enhancer — generates upper harmonics from a high-passed copy of the signal and blends them back in | |
+| **Vinyl Warmth** | Lo-fi combo effect: warmth lowpass, light bit-crush grit, subtle pitch wobble, mixed-in surface noise | |
 | **Crush Box** | Amplitude bit-depth reduction (1–16 bit) | |
 | **Stereo Field** | Mid/side width control | |
+| **Stereo Delay** | Independent delay time per channel (vs. Ping-Pong's cross-feeding bounce) | |
 | **Dyna Press** | General-purpose dynamics compressor with makeup gain | |
 | **Multiband Dyna Press** | 3-band (Linkwitz-Riley-style crossover) compressor, independent threshold/ratio per band | |
 | **Gate** | Amplitude-threshold noise gate | |

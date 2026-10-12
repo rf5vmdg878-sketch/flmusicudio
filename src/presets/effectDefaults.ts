@@ -59,6 +59,14 @@ export function defaultEffectParams(type: InsertEffectType): InsertEffectParams 
       return { type: 'pingpong_delay', timeSeconds: 0.3, feedback: 0.4, mix: 0.35 };
     case 'ringmod':
       return { type: 'ringmod', frequencyHz: 220, mix: 0.5 };
+    case 'exciter':
+      return { type: 'exciter', frequencyHz: 3000, amount: 0.4, mix: 0.3 };
+    case 'vinyl_warmth':
+      return { type: 'vinyl_warmth', warmth: 0.5, grit: 0.25, wobble: 0.3, noiseLevel: 0.25, mix: 0.6 };
+    case 'stereo_delay':
+      return { type: 'stereo_delay', leftTimeSeconds: 0.3, rightTimeSeconds: 0.45, feedback: 0.3, mix: 0.3 };
+    case 'resonator':
+      return { type: 'resonator', frequencyHz: 220, resonance: 0.85, mix: 0.3 };
   }
 }
 
@@ -67,6 +75,7 @@ export const EFFECT_TYPES: { type: InsertEffectType; label: string }[] = [
   { type: 'parametric_eq', label: 'Parametric EQ' },
   { type: 'delay', label: 'Delay' },
   { type: 'pingpong_delay', label: 'Ping-Pong Delay' },
+  { type: 'stereo_delay', label: 'Stereo Delay' },
   { type: 'reverb', label: 'Reverb' },
   { type: 'chorus', label: 'Chorus Lab' },
   { type: 'flanger', label: 'Flanger' },
@@ -74,8 +83,11 @@ export const EFFECT_TYPES: { type: InsertEffectType; label: string }[] = [
   { type: 'tremolo', label: 'Tremolo' },
   { type: 'autopan', label: 'Auto-Pan' },
   { type: 'ringmod', label: 'Ring Modulator' },
+  { type: 'resonator', label: 'Resonator' },
   { type: 'distortion', label: 'Distortion' },
   { type: 'saturator', label: 'Saturator' },
+  { type: 'exciter', label: 'Exciter' },
+  { type: 'vinyl_warmth', label: 'Vinyl Warmth' },
   { type: 'bitcrusher', label: 'Crush Box' },
   { type: 'stereo_widener', label: 'Stereo Field' },
   { type: 'compressor', label: 'Dyna Press' },

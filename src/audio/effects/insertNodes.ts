@@ -703,6 +703,230 @@ function buildRingMod(ctx: BaseAudioContext): EffectNode {
   };
 }
 
+function makeExciterCurve(amount: number): Float32Array {
+  const samples = 1024;
+  const curve = new Float32Array(samples);
+  const drive = 1 + amount * 6;
+  for (let i = 0; i < samples; i++) {
+    const x = (i * 2) / samples - 1;
+    curve[i] = Math.tanh(x * drive);
+  }
+  return curve;
+}
+
+function buildExciter(ctx: BaseAudioContext): EffectNode {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dryGain = ctx.createGain();
+  input.connect(dryGain);
+  dryGain.connect(output);
+
+  const highpass = ctx.createBiquadFilter();
+  highpass.type = 'highpass';
+  highpass.frequency.value = 3000;
+  const shaper = ctx.createWaveShaper();
+  shaper.curve = makeExciterCurve(0.4);
+  shaper.oversample = '2x';
+  const harmonicsGain = ctx.createGain();
+
+  input.connect(highpass);
+  highpass.connect(shaper);
+  shaper.connect(harmonicsGain);
+  harmonicsGain.connect(output);
+
+  return {
+    input,
+    output,
+    update: (params) => {
+      if (params.type !== 'exciter') return;
+      highpass.frequency.value = params.frequencyHz;
+      shaper.curve = makeExciterCurve(params.amount);
+      harmonicsGain.gain.value = params.mix;
+      dryGain.gain.value = 1;
+    },
+    dispose: () => {
+      input.disconnect();
+      dryGain.disconnect();
+      highpass.disconnect();
+      shaper.disconnect();
+      harmonicsGain.disconnect();
+      output.disconnect();
+    },
+  };
+}
+
+function makeVinylCrushCurve(grit: number): Float32Array {
+  const steps = Math.max(4, Math.round(64 - grit * 56));
+  const samples = 1024;
+  const curve = new Float32Array(samples);
+  for (let i = 0; i < samples; i++) {
+    const x = (i * 2) / samples - 1;
+    curve[i] = Math.round(x * steps) / steps;
+  }
+  return curve;
+}
+
+function buildVinylWarmth(ctx: BaseAudioContext): EffectNode {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+
+  const warmthFilter = ctx.createBiquadFilter();
+  warmthFilter.type = 'lowpass';
+  warmthFilter.frequency.value = 8000;
+  const gritShaper = ctx.createWaveShaper();
+  gritShaper.curve = makeVinylCrushCurve(0.2);
+
+  const wobbleDelay = ctx.createDelay(0.05);
+  wobbleDelay.delayTime.value = 0.004;
+  const wobbleLfo = ctx.createOscillator();
+  wobbleLfo.type = 'sine';
+  wobbleLfo.frequency.value = 0.6;
+  const wobbleLfoGain = ctx.createGain();
+  wobbleLfoGain.gain.value = 0.0005;
+  wobbleLfo.connect(wobbleLfoGain);
+  wobbleLfoGain.connect(wobbleDelay.delayTime);
+  wobbleLfo.start();
+
+  input.connect(warmthFilter);
+  warmthFilter.connect(gritShaper);
+  gritShaper.connect(wobbleDelay);
+
+  const noiseSrc = ctx.createBufferSource();
+  noiseSrc.buffer = getSharedCrackleBuffer(ctx);
+  noiseSrc.loop = true;
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.value = 0;
+  noiseSrc.connect(noiseGain);
+  noiseSrc.start();
+
+  const wetSum = ctx.createGain();
+  wobbleDelay.connect(wetSum);
+  noiseGain.connect(wetSum);
+
+  const dryGain = ctx.createGain();
+  const wetGain = ctx.createGain();
+  input.connect(dryGain);
+  dryGain.connect(output);
+  wetSum.connect(wetGain);
+  wetGain.connect(output);
+
+  return {
+    input,
+    output,
+    update: (params) => {
+      if (params.type !== 'vinyl_warmth') return;
+      warmthFilter.frequency.value = 12000 - params.warmth * 9000;
+      gritShaper.curve = makeVinylCrushCurve(params.grit);
+      wobbleLfoGain.gain.value = params.wobble * 0.002;
+      noiseGain.gain.value = params.noiseLevel * 0.08;
+      dryGain.gain.value = 1 - params.mix;
+      wetGain.gain.value = params.mix;
+    },
+    dispose: () => {
+      wobbleLfo.stop();
+      noiseSrc.stop();
+      [input, output, warmthFilter, gritShaper, wobbleDelay, wobbleLfo, wobbleLfoGain, noiseSrc, noiseGain, wetSum, dryGain, wetGain].forEach(
+        (n) => n.disconnect(),
+      );
+    },
+  };
+}
+
+let sharedCrackleBuffer: AudioBuffer | null = null;
+function getSharedCrackleBuffer(ctx: BaseAudioContext): AudioBuffer {
+  if (sharedCrackleBuffer && sharedCrackleBuffer.sampleRate === ctx.sampleRate) return sharedCrackleBuffer;
+  const length = ctx.sampleRate * 2;
+  const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < length; i++) {
+    // Sparse crackle/pop texture rather than a dense noise bed.
+    data[i] = Math.random() < 0.002 ? (Math.random() * 2 - 1) : (Math.random() * 2 - 1) * 0.05;
+  }
+  sharedCrackleBuffer = buffer;
+  return buffer;
+}
+
+function buildStereoDelay(ctx: BaseAudioContext): EffectNode {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const splitter = ctx.createChannelSplitter(2);
+  const merger = ctx.createChannelMerger(2);
+  input.connect(splitter);
+
+  const delayL = ctx.createDelay(2);
+  const delayR = ctx.createDelay(2);
+  const feedbackL = ctx.createGain();
+  const feedbackR = ctx.createGain();
+
+  splitter.connect(delayL, 0);
+  splitter.connect(delayR, 1);
+  delayL.connect(feedbackL);
+  feedbackL.connect(delayL);
+  delayR.connect(feedbackR);
+  feedbackR.connect(delayR);
+
+  delayL.connect(merger, 0, 0);
+  delayR.connect(merger, 0, 1);
+
+  const dryGain = ctx.createGain();
+  const wetGain = ctx.createGain();
+  input.connect(dryGain);
+  dryGain.connect(output);
+  merger.connect(wetGain);
+  wetGain.connect(output);
+
+  return {
+    input,
+    output,
+    update: (params) => {
+      if (params.type !== 'stereo_delay') return;
+      delayL.delayTime.value = params.leftTimeSeconds;
+      delayR.delayTime.value = params.rightTimeSeconds;
+      feedbackL.gain.value = params.feedback;
+      feedbackR.gain.value = params.feedback;
+      dryGain.gain.value = 1 - params.mix;
+      wetGain.gain.value = params.mix;
+    },
+    dispose: () => {
+      [input, output, splitter, merger, delayL, delayR, feedbackL, feedbackR, dryGain, wetGain].forEach((n) => n.disconnect());
+    },
+  };
+}
+
+function buildResonator(ctx: BaseAudioContext): EffectNode {
+  const delay = ctx.createDelay(0.1);
+  delay.delayTime.value = 1 / 220;
+  const feedback = ctx.createGain();
+  feedback.gain.value = 0.9;
+  const dampingFilter = ctx.createBiquadFilter();
+  dampingFilter.type = 'lowpass';
+  dampingFilter.frequency.value = 4000;
+
+  delay.connect(dampingFilter);
+  dampingFilter.connect(feedback);
+  feedback.connect(delay);
+
+  const wetChainInput = ctx.createGain();
+  wetChainInput.connect(delay);
+  const dw = makeDryWet(ctx, { input: wetChainInput, output: dampingFilter }, 0.4);
+  return {
+    input: dw.input,
+    output: dw.output,
+    update: (params) => {
+      if (params.type !== 'resonator') return;
+      delay.delayTime.value = Math.max(0.0003, 1 / params.frequencyHz);
+      feedback.gain.value = params.resonance;
+      dw.setMix(params.mix);
+    },
+    dispose: () => {
+      delay.disconnect();
+      feedback.disconnect();
+      dampingFilter.disconnect();
+      wetChainInput.disconnect();
+    },
+  };
+}
+
 export function buildEffectNode(ctx: BaseAudioContext, params: InsertEffectParams): EffectNode {
   switch (params.type) {
     case 'eq3':
@@ -743,5 +967,13 @@ export function buildEffectNode(ctx: BaseAudioContext, params: InsertEffectParam
       return buildPingPongDelay(ctx);
     case 'ringmod':
       return buildRingMod(ctx);
+    case 'exciter':
+      return buildExciter(ctx);
+    case 'vinyl_warmth':
+      return buildVinylWarmth(ctx);
+    case 'stereo_delay':
+      return buildStereoDelay(ctx);
+    case 'resonator':
+      return buildResonator(ctx);
   }
 }
