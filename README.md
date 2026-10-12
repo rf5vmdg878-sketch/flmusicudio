@@ -1,23 +1,18 @@
 # Beat Forge Studio
 
-An open-source, desktop beat-making studio / DAW — step sequencer (channel rack), piano roll,
-playlist/timeline, mixer with insert effects, a subtractive synth engine, and a sampler, built
-with Electron + React + the Web Audio API.
+An original, open-source desktop beat-making studio and digital audio workstation (DAW) — step
+sequencer, piano roll, playlist/timeline, a mixer with insert effects, and a library of
+original synth, sampler, and effect plugins — built with Electron, React, and the Web Audio API.
 
-## About the name, and FL Studio
+## About this project
 
-This project is **inspired by** the classic step-sequencer-plus-piano-roll workflow that FL
-Studio (and similar tools) popularized. It is **not** a clone of FL Studio, and never will be:
-
-- It does not use the FL Studio name, logo, or any of its branding.
-- It does not copy FL Studio's source code, proprietary UI design, or bundled sounds/plugins.
-- "Exact one-to-one" parity with a commercial, 20+-year-old product is not a realistic or
-  legal goal for an open-source project — that would mean reproducing trademarked branding and
-  proprietary assets, which this project deliberately avoids.
-
-What it does aim for is a **genuinely useful, from-scratch beat studio** with its own identity,
-built around the same core workflow: pattern-based step sequencing, a piano roll for melodies,
-a playlist for song arrangement, and a mixer with effect inserts.
+Beat Forge Studio is a standalone application with its own design and its own audio engine,
+written from scratch. Its layout follows the conventions found across modern music-production
+software in general — a pattern-based step sequencer, a piano roll for melodic editing, a
+timeline for song arrangement, and a mixer with plugin-style insert effects — because that
+workflow is simply how a broad class of beat-making tools are organized, not because it is
+copied from any one product. Every instrument, effect, icon, and line of UI code here is
+original work.
 
 ## Current feature set
 
@@ -34,7 +29,7 @@ a playlist for song arrangement, and a mixer with effect inserts.
 
 Every instrument and effect below is an original implementation running on native Web Audio
 nodes — nothing here is sampled from, modeled on, or copied from any third-party plugin's DSP,
-UI, or branding (see [About the name](#about-the-name-and-fl-studio)). Each is a thin parameter
+UI, or branding (see [About this project](#about-this-project)). Each is a thin parameter
 set over a shared engine (`src/audio/instruments/`, `src/audio/effects/insertNodes.ts`), so
 adding a new preset is just data — see [Extending it](#extending-it).
 
