@@ -13,6 +13,9 @@ function createWindow(): void {
     minWidth: 1024,
     minHeight: 640,
     backgroundColor: '#15161c',
+    // Linux window managers read the taskbar icon from here; macOS/Windows use
+    // the icon electron-builder embeds in the packaged app bundle instead.
+    icon: path.join(__dirname, '../build/icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -43,7 +46,7 @@ ipcMain.handle('project:save', async (_event, data: string) => {
   const { filePath, canceled } = await dialog.showSaveDialog({
     title: 'Save Project',
     defaultPath: 'untitled-project.bfsproj.json',
-    filters: [{ name: 'Beat Forge Project', extensions: ['bfsproj.json', 'json'] }],
+    filters: [{ name: 'Beat Forge Project', extensions: ['json'] }],
   });
   if (canceled || !filePath) return { ok: false };
   await fs.writeFile(filePath, data, 'utf-8');
@@ -54,7 +57,7 @@ ipcMain.handle('project:open', async () => {
   const { filePaths, canceled } = await dialog.showOpenDialog({
     title: 'Open Project',
     properties: ['openFile'],
-    filters: [{ name: 'Beat Forge Project', extensions: ['bfsproj.json', 'json'] }],
+    filters: [{ name: 'Beat Forge Project', extensions: ['json'] }],
   });
   if (canceled || filePaths.length === 0) return { ok: false };
   const data = await fs.readFile(filePaths[0], 'utf-8');

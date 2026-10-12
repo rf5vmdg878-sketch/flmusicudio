@@ -7,20 +7,49 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:electron": "npm run build:electron && concurrently -k \"vite\" \"npm:electron:watch\"",
-    "electron:watch": "tsc -p electron/tsconfig.json --watch --preserveWatchOutput & wait-on dist-electron/main.js tcp:5173 && cross-env NODE_ENV=development electron .",
+    "dev:electron": "npm run build:electron && concurrently -k \"npm:dev\" \"npm:electron:watch:tsc\" \"npm:electron:watch:run\"",
+    "electron:watch:tsc": "tsc -p electron/tsconfig.json --watch --preserveWatchOutput",
+    "electron:watch:run": "wait-on dist-electron/main.js tcp:5173 && cross-env NODE_ENV=development electron .",
     "build": "tsc -p tsconfig.json --noEmit && vite build",
     "build:electron": "tsc -p electron/tsconfig.json && node -e \"require('fs').copyFileSync('electron/runtime-package.json','dist-electron/package.json')\"",
-    "package": "npm run build && npm run build:electron && electron-builder",
+    "package": "npm run build && npm run build:electron && electron-builder --mac --win --linux",
+    "package:mac": "npm run build && npm run build:electron && electron-builder --mac",
+    "package:win": "npm run build && npm run build:electron && electron-builder --win",
+    "package:linux": "npm run build && npm run build:electron && electron-builder --linux",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
   },
   "build": {
     "appId": "com.beatforge.studio",
     "productName": "Beat Forge Studio",
+    "copyright": "Copyright (c) 2026 Beat Forge Studio contributors",
+    "icon": "build/icon.png",
+    "publish": null,
     "files": ["dist/**/*", "dist-electron/**/*", "package.json"],
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build"
+    },
+    "mac": {
+      "category": "public.app-category.music",
+      "target": ["dmg", "zip"],
+      "arch": ["x64", "arm64"],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
+    },
+    "win": {
+      "target": ["nsis", "portable"],
+      "arch": ["x64", "arm64"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "linux": {
+      "target": ["AppImage", "deb", "rpm"],
+      "category": "Audio",
+      "arch": ["x64", "arm64"]
     }
   },
   "dependencies": {

@@ -42,6 +42,8 @@ a playlist for song arrangement, and a mixer with effect inserts.
 ## Architecture
 
 ```
+.github/workflows/   CI: builds installers on Windows/macOS/Linux runners
+build/               electron-builder resources (app icon)
 electron/            Electron main process + preload (file dialogs, IPC)
 src/
   audio/             Web Audio engine: scheduler, mixer graph, instruments, effects, WAV export
@@ -57,6 +59,12 @@ graph in sync, while a lookahead scheduler (`src/audio/Scheduler.ts`) reads the 
 tick to decide what to trigger. The same step-resolution logic is reused for offline WAV
 rendering (`src/audio/export/renderToWav.ts`), so exports match what you hear during playback.
 
+## Platform support
+
+Beat Forge Studio runs on **Windows, macOS, and Linux** — it's a single Electron + Web Audio
+codebase with no platform-specific branches in the app logic; Electron's bundled Chromium
+behaves identically across all three. Requirements: [Node.js](https://nodejs.org) 20+ and npm.
+
 ## Getting started
 
 ```bash
@@ -69,8 +77,31 @@ Other scripts:
 - `npm run dev` — run just the React app in a browser (sample import/export dialogs fall back
   to browser downloads instead of native file dialogs).
 - `npm run build` — typecheck + build the renderer bundle.
-- `npm run package` — build everything and package a desktop installer via electron-builder.
 - `npm run typecheck` — TypeScript only, no emit.
+
+### Building installers for each OS
+
+```bash
+npm run package:mac     # .dmg + .zip (x64 + Apple Silicon)
+npm run package:win     # NSIS installer + portable .exe (x64 + arm64)
+npm run package:linux   # .AppImage + .deb + .rpm (x64 + arm64)
+npm run package         # builds all three — only macOS can build+sign the .dmg properly;
+                         # electron-builder can still cross-build Windows/Linux artifacts from
+                         # macOS or Linux hosts, but building each target on its native OS is
+                         # the most reliable option (see CI below)
+```
+
+Output lands in `release/`. These builds are **unsigned** (no Apple Developer ID or Windows
+code-signing certificate is configured) — macOS will show a Gatekeeper warning and Windows will
+show a SmartScreen warning on first launch; users can still run the app by choosing "Open Anyway"
+/ "Run anyway". Signing is a config addition (`CSC_LINK`/`APPLE_ID` env vars for electron-builder)
+left for whoever maintains a release pipeline with real certificates.
+
+### CI: building on all three OSes
+
+`.github/workflows/build.yml` runs a GitHub Actions matrix across `ubuntu-latest`,
+`windows-latest`, and `macos-latest`, each building its native package set and uploading the
+installers as workflow artifacts. It runs on pushes/PRs to `main` and can be triggered manually.
 
 ## Extending it
 
