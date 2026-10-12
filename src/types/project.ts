@@ -202,7 +202,10 @@ export type InsertEffectType =
   | 'resonator'
   | 'saturator'
   | 'pingpong_delay'
-  | 'ringmod';
+  | 'ringmod'
+  | 'de_esser'
+  | 'transient_shaper'
+  | 'wah_sweep';
 
 export interface Eq3Params {
   type: 'eq3';
@@ -394,6 +397,36 @@ export interface ResonatorParams {
   mix: number;
 }
 
+/** De-esser: a frequency-selective compressor — the signal above
+ * `frequencyHz` is compressed on its own, then recombined with the rest of
+ * the spectrum, taming sibilance without affecting the full-band level. */
+export interface DeEsserParams {
+  type: 'de_esser';
+  frequencyHz: number;
+  thresholdDb: number;
+  ratio: number;
+}
+
+/** Transient Shaper: parallel compression tuned to emphasize or soften
+ * attacks relative to the sustained part of the signal — a fast-attack
+ * compressed copy is blended against the dry signal. */
+export interface TransientShaperParams {
+  type: 'transient_shaper';
+  attackSeconds: number;
+  releaseSeconds: number;
+  amount: number; // -1..1, negative softens transients, positive emphasizes them
+}
+
+/** Wah Sweep: an LFO-driven resonant bandpass filter (an "auto-wah" style
+ * sweep driven by a steady rate, not an envelope follower). */
+export interface WahSweepParams {
+  type: 'wah_sweep';
+  rateHz: number;
+  depth: number; // 0..1
+  baseFreqHz: number;
+  resonance: number;
+}
+
 export type InsertEffectParams =
   | Eq3Params
   | DelayParams
@@ -417,7 +450,10 @@ export type InsertEffectParams =
   | ExciterParams
   | VinylWarmthParams
   | StereoDelayParams
-  | ResonatorParams;
+  | ResonatorParams
+  | DeEsserParams
+  | TransientShaperParams
+  | WahSweepParams;
 
 export interface InsertEffect {
   id: string;

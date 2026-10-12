@@ -67,6 +67,12 @@ export function defaultEffectParams(type: InsertEffectType): InsertEffectParams 
       return { type: 'stereo_delay', leftTimeSeconds: 0.3, rightTimeSeconds: 0.45, feedback: 0.3, mix: 0.3 };
     case 'resonator':
       return { type: 'resonator', frequencyHz: 220, resonance: 0.85, mix: 0.3 };
+    case 'de_esser':
+      return { type: 'de_esser', frequencyHz: 6000, thresholdDb: -30, ratio: 4 };
+    case 'transient_shaper':
+      return { type: 'transient_shaper', attackSeconds: 0.003, releaseSeconds: 0.15, amount: 0.4 };
+    case 'wah_sweep':
+      return { type: 'wah_sweep', rateHz: 2, depth: 0.6, baseFreqHz: 800, resonance: 6 };
   }
 }
 
@@ -93,5 +99,8 @@ export const EFFECT_TYPES: { type: InsertEffectType; label: string }[] = [
   { type: 'compressor', label: 'Dyna Press' },
   { type: 'multiband_compressor', label: 'Multiband Dyna Press' },
   { type: 'gate', label: 'Gate' },
+  { type: 'de_esser', label: 'De-esser' },
+  { type: 'transient_shaper', label: 'Transient Shaper' },
+  { type: 'wah_sweep', label: 'Wah Sweep' },
   { type: 'limiter', label: 'Limiter' },
 ];

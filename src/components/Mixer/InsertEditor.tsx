@@ -280,6 +280,28 @@ export function InsertEditor({ trackId, insertId, onClose }: Props): JSX.Element
             <Field label="Mix" value={params.mix} min={0} max={1} onChange={(v) => update({ ...params, mix: v })} />
           </>
         )}
+        {params.type === 'de_esser' && (
+          <>
+            <Field label="Frequency" value={params.frequencyHz} min={2000} max={12000} onChange={(v) => update({ ...params, frequencyHz: v })} format={(v) => `${v.toFixed(0)}Hz`} />
+            <Field label="Threshold" value={params.thresholdDb} min={-60} max={0} onChange={(v) => update({ ...params, thresholdDb: v })} format={(v) => `${v.toFixed(1)}dB`} />
+            <Field label="Ratio" value={params.ratio} min={1} max={20} onChange={(v) => update({ ...params, ratio: v })} format={(v) => `${v.toFixed(1)}:1`} />
+          </>
+        )}
+        {params.type === 'transient_shaper' && (
+          <>
+            <Field label="Attack" value={params.attackSeconds} min={0.001} max={0.1} onChange={(v) => update({ ...params, attackSeconds: v })} format={(v) => `${(v * 1000).toFixed(0)}ms`} />
+            <Field label="Release" value={params.releaseSeconds} min={0.01} max={0.5} onChange={(v) => update({ ...params, releaseSeconds: v })} format={(v) => `${v.toFixed(2)}s`} />
+            <Field label="Amount" value={params.amount} min={-1} max={1} onChange={(v) => update({ ...params, amount: v })} />
+          </>
+        )}
+        {params.type === 'wah_sweep' && (
+          <>
+            <Field label="Rate" value={params.rateHz} min={0.1} max={10} onChange={(v) => update({ ...params, rateHz: v })} format={(v) => `${v.toFixed(1)}Hz`} />
+            <Field label="Depth" value={params.depth} min={0} max={1} onChange={(v) => update({ ...params, depth: v })} />
+            <Field label="Base Freq" value={params.baseFreqHz} min={200} max={3000} onChange={(v) => update({ ...params, baseFreqHz: v })} format={(v) => `${v.toFixed(0)}Hz`} />
+            <Field label="Resonance" value={params.resonance} min={0.5} max={15} onChange={(v) => update({ ...params, resonance: v })} />
+          </>
+        )}
       </div>
     </div>
   );

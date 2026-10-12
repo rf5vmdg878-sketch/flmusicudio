@@ -927,6 +927,117 @@ function buildResonator(ctx: BaseAudioContext): EffectNode {
   };
 }
 
+function buildDeEsser(ctx: BaseAudioContext): EffectNode {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+
+  const lowSplit = ctx.createBiquadFilter();
+  lowSplit.type = 'lowpass';
+  lowSplit.frequency.value = 6000;
+  const highSplit = ctx.createBiquadFilter();
+  highSplit.type = 'highpass';
+  highSplit.frequency.value = 6000;
+
+  const sibilanceComp = ctx.createDynamicsCompressor();
+  sibilanceComp.attack.value = 0.001;
+  sibilanceComp.release.value = 0.08;
+  sibilanceComp.knee.value = 3;
+
+  input.connect(lowSplit);
+  input.connect(highSplit);
+  highSplit.connect(sibilanceComp);
+
+  lowSplit.connect(output);
+  sibilanceComp.connect(output);
+
+  return {
+    input,
+    output,
+    update: (params) => {
+      if (params.type !== 'de_esser') return;
+      lowSplit.frequency.value = params.frequencyHz;
+      highSplit.frequency.value = params.frequencyHz;
+      sibilanceComp.threshold.value = params.thresholdDb;
+      sibilanceComp.ratio.value = params.ratio;
+    },
+    dispose: () => {
+      [input, output, lowSplit, highSplit, sibilanceComp].forEach((n) => n.disconnect());
+    },
+  };
+}
+
+function buildTransientShaper(ctx: BaseAudioContext): EffectNode {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+
+  const dryGain = ctx.createGain();
+  input.connect(dryGain);
+  dryGain.connect(output);
+
+  // A fast-attack, moderate-release compressor standing in for a
+  // transient-tracking envelope; blending its output positively or
+  // negatively against the dry signal pushes attacks up or down.
+  const comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -24;
+  comp.ratio.value = 8;
+  comp.knee.value = 2;
+  const blendGain = ctx.createGain();
+  blendGain.gain.value = 0;
+
+  input.connect(comp);
+  comp.connect(blendGain);
+  blendGain.connect(output);
+
+  return {
+    input,
+    output,
+    update: (params) => {
+      if (params.type !== 'transient_shaper') return;
+      comp.attack.value = params.attackSeconds;
+      comp.release.value = params.releaseSeconds;
+      blendGain.gain.value = params.amount;
+      dryGain.gain.value = 1 - Math.max(0, params.amount) * 0.3;
+    },
+    dispose: () => {
+      [input, output, dryGain, comp, blendGain].forEach((n) => n.disconnect());
+    },
+  };
+}
+
+function buildWahSweep(ctx: BaseAudioContext): EffectNode {
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 800;
+  filter.Q.value = 6;
+
+  const lfo = ctx.createOscillator();
+  lfo.type = 'sine';
+  lfo.frequency.value = 2;
+  const lfoGain = ctx.createGain();
+  lfoGain.gain.value = 600;
+  lfo.connect(lfoGain);
+  lfoGain.connect(filter.frequency);
+  lfo.start();
+
+  return {
+    input: filter,
+    output: filter,
+    update: (params) => {
+      if (params.type !== 'wah_sweep') return;
+      lfo.frequency.value = params.rateHz;
+      lfoGain.gain.value = params.depth * params.baseFreqHz;
+      filter.frequency.value = params.baseFreqHz;
+      filter.Q.value = params.resonance;
+    },
+    dispose: () => {
+      lfo.stop();
+      lfo.disconnect();
+      lfoGain.disconnect();
+      filter.disconnect();
+    },
+  };
+}
+
 export function buildEffectNode(ctx: BaseAudioContext, params: InsertEffectParams): EffectNode {
   switch (params.type) {
     case 'eq3':
@@ -975,5 +1086,11 @@ export function buildEffectNode(ctx: BaseAudioContext, params: InsertEffectParam
       return buildStereoDelay(ctx);
     case 'resonator':
       return buildResonator(ctx);
+    case 'de_esser':
+      return buildDeEsser(ctx);
+    case 'transient_shaper':
+      return buildTransientShaper(ctx);
+    case 'wah_sweep':
+      return buildWahSweep(ctx);
   }
 }

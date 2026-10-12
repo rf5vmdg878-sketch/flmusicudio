@@ -73,6 +73,9 @@ adding a new preset is just data — see [Extending it](#extending-it).
 | **Dyna Press** | General-purpose dynamics compressor with makeup gain | |
 | **Multiband Dyna Press** | 3-band (Linkwitz-Riley-style crossover) compressor, independent threshold/ratio per band | |
 | **Gate** | Amplitude-threshold noise gate | |
+| **De-esser** | Frequency-selective compressor targeting sibilance | |
+| **Transient Shaper** | Parallel-compression attack/sustain emphasis or softening | |
+| **Wah Sweep** | LFO-driven resonant bandpass sweep (rate-based "auto-wah") | |
 | **Limiter** | Brick-wall limiter for the master bus | |
 
 ## Architecture

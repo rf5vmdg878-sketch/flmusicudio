@@ -158,6 +158,46 @@ export const SYNTH_PRESETS: SynthPreset[] = [
       glideSeconds: 0,
     },
   },
+  {
+    name: 'Acid Line',
+    color: '#ff6b6b',
+    params: {
+      kind: 'synth',
+      oscillators: [
+        { shape: 'sawtooth', detuneCents: 0, octave: -1, level: 1 },
+        { shape: 'square', detuneCents: 0, octave: -1, level: 0 },
+      ],
+      filterType: 'lowpass',
+      filterCutoffHz: 600,
+      filterResonanceQ: 12,
+      filterEnvAmount: 0.9,
+      attack: 0.001,
+      decay: 0.25,
+      sustain: 0.1,
+      release: 0.08,
+      glideSeconds: 0.04,
+    },
+  },
+  {
+    name: 'Glass Pad',
+    color: '#66d9e8',
+    params: {
+      kind: 'synth',
+      oscillators: [
+        { shape: 'sine', detuneCents: -8, octave: 1, level: 0.5 },
+        { shape: 'triangle', detuneCents: 8, octave: 0, level: 0.6 },
+      ],
+      filterType: 'highpass',
+      filterCutoffHz: 300,
+      filterResonanceQ: 0.3,
+      filterEnvAmount: 0,
+      attack: 0.9,
+      decay: 0.6,
+      sustain: 0.9,
+      release: 1.8,
+      glideSeconds: 0,
+    },
+  },
 ];
 
 export interface FmSynthPreset {
@@ -210,6 +250,34 @@ export const FM_SYNTH_PRESETS: FmSynthPreset[] = [
       decay: 0.3,
       sustain: 0.6,
       release: 0.2,
+    },
+  },
+  {
+    name: 'FM Marimba',
+    color: '#fcc419',
+    params: {
+      kind: 'fm',
+      modulatorRatio: 4,
+      modulationIndex: 2.5,
+      modIndexEnvAmount: 0.4,
+      attack: 0.001,
+      decay: 0.5,
+      sustain: 0,
+      release: 0.3,
+    },
+  },
+  {
+    name: 'FM Brass',
+    color: '#ff922b',
+    params: {
+      kind: 'fm',
+      modulatorRatio: 1,
+      modulationIndex: 1.2,
+      modIndexEnvAmount: 0.5,
+      attack: 0.06,
+      decay: 0.2,
+      sustain: 0.75,
+      release: 0.25,
     },
   },
 ];
@@ -341,6 +409,30 @@ export const ADDITIVE_PRESETS: AdditivePreset[] = [
       decay: 0.5,
       sustain: 0.8,
       release: 0.9,
+    },
+  },
+  {
+    name: 'Rig Brassy Stack',
+    color: '#ffa94d',
+    params: {
+      kind: 'additive',
+      harmonicLevels: [1, 0.8, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2, 0.15, 0.1],
+      attack: 0.04,
+      decay: 0.15,
+      sustain: 0.85,
+      release: 0.2,
+    },
+  },
+  {
+    name: 'Rig Hollow Fifth',
+    color: '#63e6be',
+    params: {
+      kind: 'additive',
+      harmonicLevels: [1, 0, 0, 0.6, 0, 0, 0.3],
+      attack: 0.01,
+      decay: 0.3,
+      sustain: 0.6,
+      release: 0.4,
     },
   },
 ];
