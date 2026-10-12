@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { useProjectStore } from '@/state/store';
 import { audioEngine } from '@/audio/AudioEngine';
 import type { PianoRollNote } from '@/types/project';
@@ -77,12 +77,12 @@ export function PianoRoll(): JSX.Element {
     audioEngine.previewChannel(activeChannelId, 0.9, 0.3, pitch);
   };
 
-  const handleNoteClick = (note: PianoRollNote, e: MouseEvent): void => {
+  const handleNoteClick = (note: PianoRollNote, e: ReactMouseEvent): void => {
     e.stopPropagation();
     removeNote(pattern.id, activeChannelId, note.id);
   };
 
-  const startResize = (note: PianoRollNote, e: MouseEvent): void => {
+  const startResize = (note: PianoRollNote, e: ReactMouseEvent): void => {
     e.stopPropagation();
     e.preventDefault();
     setDragNoteId(note.id);

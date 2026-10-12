@@ -30,12 +30,12 @@ interface ChannelNodes {
  * `sync` is cheap to call on every store tick: it only creates/destroys/rewires
  * nodes when the underlying structure actually changed. */
 export class MixerGraph {
-  private readonly ctx: AudioContext;
+  private readonly ctx: BaseAudioContext;
   private readonly masterTrackId: string;
   private trackNodes = new Map<string, TrackNodes>();
   private channelNodes = new Map<string, ChannelNodes>();
 
-  constructor(ctx: AudioContext, masterTrackId: string) {
+  constructor(ctx: BaseAudioContext, masterTrackId: string) {
     this.ctx = ctx;
     this.masterTrackId = masterTrackId;
   }

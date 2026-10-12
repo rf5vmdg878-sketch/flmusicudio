@@ -135,7 +135,7 @@ function buildLimiter(ctx: BaseAudioContext): EffectNode {
   };
 }
 
-function makeDistortionCurve(amount: number): Float32Array {
+function makeDistortionCurve(amount: number): Float32Array<ArrayBuffer> {
   const samples = 1024;
   const curve = new Float32Array(samples);
   const k = amount * 100;
@@ -274,7 +274,7 @@ function buildPhaser(ctx: BaseAudioContext): EffectNode {
   };
 }
 
-function makeBitcrushCurve(bitDepth: number): Float32Array {
+function makeBitcrushCurve(bitDepth: number): Float32Array<ArrayBuffer> {
   const steps = Math.max(2, Math.pow(2, Math.max(1, Math.min(16, bitDepth))));
   const samples = 1024;
   const curve = new Float32Array(samples);
@@ -487,7 +487,7 @@ function buildAutoPan(ctx: BaseAudioContext): EffectNode {
   };
 }
 
-function makeGateCurve(thresholdDb: number): Float32Array {
+function makeGateCurve(thresholdDb: number): Float32Array<ArrayBuffer> {
   const thresholdLinear = Math.pow(10, thresholdDb / 20);
   const samples = 2048;
   const curve = new Float32Array(samples);
@@ -583,7 +583,7 @@ function buildMultibandCompressor(ctx: BaseAudioContext): EffectNode {
   };
 }
 
-function makeSaturatorCurve(drive: number): Float32Array {
+function makeSaturatorCurve(drive: number): Float32Array<ArrayBuffer> {
   const samples = 1024;
   const curve = new Float32Array(samples);
   const amount = 1 + drive * 9;
@@ -703,7 +703,7 @@ function buildRingMod(ctx: BaseAudioContext): EffectNode {
   };
 }
 
-function makeExciterCurve(amount: number): Float32Array {
+function makeExciterCurve(amount: number): Float32Array<ArrayBuffer> {
   const samples = 1024;
   const curve = new Float32Array(samples);
   const drive = 1 + amount * 6;
@@ -755,7 +755,7 @@ function buildExciter(ctx: BaseAudioContext): EffectNode {
   };
 }
 
-function makeVinylCrushCurve(grit: number): Float32Array {
+function makeVinylCrushCurve(grit: number): Float32Array<ArrayBuffer> {
   const steps = Math.max(4, Math.round(64 - grit * 56));
   const samples = 1024;
   const curve = new Float32Array(samples);

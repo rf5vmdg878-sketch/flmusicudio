@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { useProjectStore } from '@/state/store';
 import type { PlaylistBlock } from '@/types/project';
 import './Playlist.css';
@@ -71,12 +71,12 @@ export function Playlist(): JSX.Element {
     addPlaylistBlock(trackId, patternToPlace, barIndex, lengthBars);
   };
 
-  const startMove = (block: PlaylistBlock, e: MouseEvent): void => {
+  const startMove = (block: PlaylistBlock, e: ReactMouseEvent): void => {
     e.stopPropagation();
     setDragState({ blockId: block.id, mode: 'move', startX: e.clientX, startBar: block.startBar, startLength: block.lengthBars });
   };
 
-  const startResize = (block: PlaylistBlock, e: MouseEvent): void => {
+  const startResize = (block: PlaylistBlock, e: ReactMouseEvent): void => {
     e.stopPropagation();
     e.preventDefault();
     setDragState({ blockId: block.id, mode: 'resize', startX: e.clientX, startBar: block.startBar, startLength: block.lengthBars });

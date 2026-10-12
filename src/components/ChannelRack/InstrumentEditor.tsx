@@ -63,6 +63,11 @@ export function InstrumentEditor({ channelId, onClose }: Props): JSX.Element | n
     setChannelInstrument(channel.id, { ...instrument, ...patch });
   };
 
+  const updateSliceCount = (sliceCount: number): void => {
+    if (instrument.kind !== 'sampler' || instrument.source.type !== 'slice') return;
+    updateSampler({ source: { ...instrument.source, sliceCount } });
+  };
+
   const updateFm = (patch: Partial<FmSynthParams>): void => {
     if (instrument.kind !== 'fm') return;
     setChannelInstrument(channel.id, { ...instrument, ...patch });
@@ -333,9 +338,7 @@ export function InstrumentEditor({ channelId, onClose }: Props): JSX.Element | n
                   min={2}
                   max={32}
                   step={1}
-                  onChange={(v) =>
-                    instrument.source.type === 'slice' && updateSampler({ source: { ...instrument.source, sliceCount: Math.round(v) } })
-                  }
+                  onChange={(v) => updateSliceCount(Math.round(v))}
                   format={(v) => v.toFixed(0)}
                 />
                 <div className="field-row">

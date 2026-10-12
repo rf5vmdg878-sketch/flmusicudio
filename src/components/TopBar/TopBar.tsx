@@ -57,7 +57,11 @@ export function TopBar(): JSX.Element {
     setExporting(true);
     try {
       const project = useProjectStore.getState();
-      const buffer = await renderProjectToWav(project, { mode: project.transport.playMode === 'song' ? 'song' : 'pattern', patternId: project.transport.currentPatternId ?? undefined });
+      const target: Parameters<typeof renderProjectToWav>[1] =
+        project.transport.playMode === 'song'
+          ? { mode: 'song' }
+          : { mode: 'pattern', patternId: project.transport.currentPatternId ?? project.patterns[0]?.id ?? '' };
+      const buffer = await renderProjectToWav(project, target);
       const filename = `${project.projectName.replace(/\s+/g, '-')}.wav`;
       if (window.beatForge) {
         await window.beatForge.exportWav(buffer);
