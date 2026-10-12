@@ -1,4 +1,4 @@
-import type { Pattern, ProjectState } from '@/types/project';
+import type { AutomationLane, Pattern, ProjectState } from '@/types/project';
 import { useProjectStore } from '@/state/store';
 import type { MixerGraph } from './MixerGraph';
 import type { SampleCache } from './SampleCache';
@@ -18,6 +18,33 @@ export function songLengthBars(project: ProjectState): number {
     maxBar = Math.max(maxBar, block.startBar + block.lengthBars);
   }
   return maxBar;
+}
+
+function defaultAutomationValue(lane: AutomationLane): number {
+  return lane.target.kind === 'mixerVolume' ? 1 : 0;
+}
+
+/** Linear interpolation between the automation lane's surrounding points at
+ * a given (possibly fractional) bar position; holds the nearest point's
+ * value before the first/after the last point, and the target's identity
+ * value when the lane has no points at all. */
+export function automationValueAtBar(lane: AutomationLane, barPosition: number): number {
+  const points = lane.points;
+  if (points.length === 0) return defaultAutomationValue(lane);
+  if (barPosition <= points[0].bar) return points[0].value;
+  const last = points[points.length - 1];
+  if (barPosition >= last.bar) return last.value;
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i];
+    const b = points[i + 1];
+    if (barPosition >= a.bar && barPosition <= b.bar) {
+      const span = b.bar - a.bar;
+      const t = span <= 0 ? 0 : (barPosition - a.bar) / span;
+      return a.value + (b.value - a.value) * t;
+    }
+  }
+  return last.value;
 }
 
 export interface StepHit {
@@ -144,6 +171,20 @@ export class Scheduler {
         hit.velocity,
         hit.midiNote,
       );
+    }
+
+    if (project.transport.playMode === 'song') {
+      const barPosition = globalStep / STEPS_PER_BAR;
+      for (const lane of project.automationLanes) {
+        const targetId = lane.target.mixerTrackId;
+        const param =
+          lane.target.kind === 'mixerVolume'
+            ? this.mixerGraph.getTrackAutomationGainParam(targetId)
+            : this.mixerGraph.getTrackAutomationPanParam(targetId);
+        if (!param) continue;
+        const value = automationValueAtBar(lane, barPosition);
+        param.linearRampToValueAtTime(value, time);
+      }
     }
 
     const delayMs = Math.max(0, (time - this.ctx.currentTime) * 1000);

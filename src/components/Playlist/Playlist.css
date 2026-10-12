@@ -130,3 +130,53 @@
   z-index: 10;
   pointer-events: none;
 }
+
+.automation-add-wrap {
+  position: relative;
+}
+
+.automation-add-menu {
+  position: absolute;
+  top: 32px;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  gap: 14px;
+  padding: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.automation-add-col {
+  min-width: 110px;
+}
+
+.automation-row {
+  margin-top: 6px;
+}
+
+.automation-lane {
+  position: relative;
+  background: #15161e;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: crosshair;
+}
+
+.automation-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.automation-point {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  border: 1px solid #06201c;
+  cursor: grab;
+  z-index: 2;
+}

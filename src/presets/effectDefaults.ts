@@ -73,6 +73,12 @@ export function defaultEffectParams(type: InsertEffectType): InsertEffectParams 
       return { type: 'transient_shaper', attackSeconds: 0.003, releaseSeconds: 0.15, amount: 0.4 };
     case 'wah_sweep':
       return { type: 'wah_sweep', rateHz: 2, depth: 0.6, baseFreqHz: 800, resonance: 6 };
+    case 'formant_filter':
+      return { type: 'formant_filter', vowel: 'a', resonance: 10, mix: 0.7 };
+    case 'doubler':
+      return { type: 'doubler', spreadMs: 6, voices: 3, mix: 0.4 };
+    case 'pump':
+      return { type: 'pump', rateHz: 2, depth: 0.6, holdPercent: 0.15 };
   }
 }
 
@@ -102,5 +108,8 @@ export const EFFECT_TYPES: { type: InsertEffectType; label: string }[] = [
   { type: 'de_esser', label: 'De-esser' },
   { type: 'transient_shaper', label: 'Transient Shaper' },
   { type: 'wah_sweep', label: 'Wah Sweep' },
+  { type: 'formant_filter', label: 'Formant Filter' },
+  { type: 'doubler', label: 'Doubler' },
+  { type: 'pump', label: 'Pump' },
   { type: 'limiter', label: 'Limiter' },
 ];

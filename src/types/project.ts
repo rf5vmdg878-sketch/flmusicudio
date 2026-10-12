@@ -179,6 +179,25 @@ export interface PlaylistBlock {
   lengthBars: number;
 }
 
+export interface AutomationPoint {
+  id: string;
+  bar: number; // song-timeline position, can be fractional
+  value: number; // meaning depends on the lane's target (see AutomationTarget)
+}
+
+export type AutomationTarget =
+  /** value 0..1, a multiplier layered on top of the track's manual fader (1 = no change). */
+  | { kind: 'mixerVolume'; mixerTrackId: string }
+  /** value -1..1, an offset layered on top of the track's manual pan (0 = no change). */
+  | { kind: 'mixerPan'; mixerTrackId: string };
+
+export interface AutomationLane {
+  id: string;
+  name: string;
+  target: AutomationTarget;
+  points: AutomationPoint[]; // kept sorted by bar
+}
+
 export type InsertEffectType =
   | 'eq3'
   | 'delay'
@@ -205,7 +224,10 @@ export type InsertEffectType =
   | 'ringmod'
   | 'de_esser'
   | 'transient_shaper'
-  | 'wah_sweep';
+  | 'wah_sweep'
+  | 'formant_filter'
+  | 'doubler'
+  | 'pump';
 
 export interface Eq3Params {
   type: 'eq3';
@@ -427,6 +449,37 @@ export interface WahSweepParams {
   resonance: number;
 }
 
+export type FormantVowel = 'a' | 'e' | 'i' | 'o' | 'u';
+
+/** Formant Filter: three parallel bandpass filters tuned to a vowel's
+ * formant frequencies (standard phonetics data), giving a vocal/talk-box
+ * character to whatever runs through it. */
+export interface FormantFilterParams {
+  type: 'formant_filter';
+  vowel: FormantVowel;
+  resonance: number;
+  mix: number;
+}
+
+/** Doubler: a few short, fixed (unmodulated) delay taps with stereo spread —
+ * a thickening effect distinct from Chorus Lab's LFO-modulated movement. */
+export interface DoublerParams {
+  type: 'doubler';
+  spreadMs: number; // tap spacing
+  voices: number; // 2..4
+  mix: number;
+}
+
+/** Pump: a tempo-rate gain "duck" envelope (the popular sidechain-style
+ * pumping effect), driven by a looped shaped envelope rather than true
+ * sidechain input detection. */
+export interface PumpParams {
+  type: 'pump';
+  rateHz: number;
+  depth: number; // 0..1, how deep the duck goes
+  holdPercent: number; // 0..1, fraction of the cycle held low before recovering
+}
+
 export type InsertEffectParams =
   | Eq3Params
   | DelayParams
@@ -453,7 +506,10 @@ export type InsertEffectParams =
   | ResonatorParams
   | DeEsserParams
   | TransientShaperParams
-  | WahSweepParams;
+  | WahSweepParams
+  | FormantFilterParams
+  | DoublerParams
+  | PumpParams;
 
 export interface InsertEffect {
   id: string;
@@ -491,4 +547,5 @@ export interface ProjectState {
   mixerTracks: MixerTrack[]; // index 0 is always Master
   transport: TransportState;
   samples: Record<string, { name: string; dataUrl: string }>;
+  automationLanes: AutomationLane[];
 }

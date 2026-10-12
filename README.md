@@ -21,6 +21,11 @@ original work.
 - **Piano roll** — note drawing/deleting/resizing for melodic channels.
 - **Playlist** — arrange patterns onto song tracks; move/resize/delete blocks; song-mode
   playback loops the arrangement.
+- **Automation lanes** — draw volume/pan automation curves for any mixer track directly on the
+  song timeline (click to add a point, drag to move it, double-click to remove it). Automation
+  is layered on top of the manual fader/pan (a separate AudioParam path the mixer sync never
+  overwrites), scheduled with the same lookahead the step sequencer uses, and only applies in
+  song-playback mode.
 - **Mixer** — per-track fader/pan/mute/solo, insert effect slots, master bus.
 - **Export**: render the current pattern or full song to a 16-bit WAV file.
 - **Project save/load** as JSON, via native file dialogs in the desktop app.
@@ -153,9 +158,9 @@ installers as workflow artifacts. It runs on pushes/PRs to `main` and can be tri
 
 ## Roadmap ideas (not yet implemented)
 
-This first pass covers the core loop end-to-end; it does not yet include automation lanes,
-MIDI hardware input, audio recording, third-party plugin (VST) hosting, or a browser/library
-of community sample packs. Contributions welcome.
+This covers the core loop end-to-end plus volume/pan automation; it does not yet include MIDI
+hardware input, audio recording, third-party plugin (VST) hosting, or a browser/library of
+community sample packs. Contributions welcome.
 
 ## License
 

@@ -302,6 +302,36 @@ export function InsertEditor({ trackId, insertId, onClose }: Props): JSX.Element
             <Field label="Resonance" value={params.resonance} min={0.5} max={15} onChange={(v) => update({ ...params, resonance: v })} />
           </>
         )}
+        {params.type === 'formant_filter' && (
+          <>
+            <div className="field-row">
+              <label>Vowel</label>
+              <select className="themed" value={params.vowel} onChange={(e) => update({ ...params, vowel: e.target.value as typeof params.vowel })}>
+                <option value="a">a</option>
+                <option value="e">e</option>
+                <option value="i">i</option>
+                <option value="o">o</option>
+                <option value="u">u</option>
+              </select>
+            </div>
+            <Field label="Resonance" value={params.resonance} min={1} max={25} onChange={(v) => update({ ...params, resonance: v })} />
+            <Field label="Mix" value={params.mix} min={0} max={1} onChange={(v) => update({ ...params, mix: v })} />
+          </>
+        )}
+        {params.type === 'doubler' && (
+          <>
+            <Field label="Spread" value={params.spreadMs} min={1} max={25} onChange={(v) => update({ ...params, spreadMs: v })} format={(v) => `${v.toFixed(1)}ms`} />
+            <Field label="Voices" value={params.voices} min={2} max={4} step={1} onChange={(v) => update({ ...params, voices: Math.round(v) })} format={(v) => v.toFixed(0)} />
+            <Field label="Mix" value={params.mix} min={0} max={1} onChange={(v) => update({ ...params, mix: v })} />
+          </>
+        )}
+        {params.type === 'pump' && (
+          <>
+            <Field label="Rate" value={params.rateHz} min={0.25} max={8} onChange={(v) => update({ ...params, rateHz: v })} format={(v) => `${v.toFixed(2)}Hz`} />
+            <Field label="Depth" value={params.depth} min={0} max={1} onChange={(v) => update({ ...params, depth: v })} />
+            <Field label="Hold" value={params.holdPercent} min={0.05} max={0.9} onChange={(v) => update({ ...params, holdPercent: v })} />
+          </>
+        )}
       </div>
     </div>
   );

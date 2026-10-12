@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
 import type {
+  AutomationLane,
+  AutomationPoint,
+  AutomationTarget,
   Channel,
   InsertEffect,
   InsertEffectParams,
@@ -70,6 +73,12 @@ export interface ProjectStore extends ProjectState {
 
   addSample: (id: string, name: string, dataUrl: string) => void;
   removeSample: (id: string) => void;
+
+  addAutomationLane: (target: AutomationTarget, name: string) => string;
+  removeAutomationLane: (laneId: string) => void;
+  addAutomationPoint: (laneId: string, bar: number, value: number) => string;
+  updateAutomationPoint: (laneId: string, pointId: string, patch: Partial<Omit<AutomationPoint, 'id'>>) => void;
+  removeAutomationPoint: (laneId: string, pointId: string) => void;
 
   loadProject: (project: ProjectState) => void;
   resetProject: () => void;
@@ -343,6 +352,42 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       const { [id]: _removed, ...rest } = s.samples;
       return { samples: rest };
     }),
+
+  addAutomationLane: (target, name) => {
+    const id = uuid();
+    const lane: AutomationLane = { id, name, target, points: [] };
+    set((s) => ({ automationLanes: [...s.automationLanes, lane] }));
+    return id;
+  },
+
+  removeAutomationLane: (laneId) => set((s) => ({ automationLanes: s.automationLanes.filter((l) => l.id !== laneId) })),
+
+  addAutomationPoint: (laneId, bar, value) => {
+    const id = uuid();
+    set((s) => ({
+      automationLanes: patch(s.automationLanes, laneId, (lane) => ({
+        ...lane,
+        points: [...lane.points, { id, bar, value }].sort((a, b) => a.bar - b.bar),
+      })),
+    }));
+    return id;
+  },
+
+  updateAutomationPoint: (laneId, pointId, pointPatch) =>
+    set((s) => ({
+      automationLanes: patch(s.automationLanes, laneId, (lane) => ({
+        ...lane,
+        points: lane.points.map((p) => (p.id === pointId ? { ...p, ...pointPatch } : p)).sort((a, b) => a.bar - b.bar),
+      })),
+    })),
+
+  removeAutomationPoint: (laneId, pointId) =>
+    set((s) => ({
+      automationLanes: patch(s.automationLanes, laneId, (lane) => ({
+        ...lane,
+        points: lane.points.filter((p) => p.id !== pointId),
+      })),
+    })),
 
   loadProject: (project) => set({ ...project, selectedChannelId: null, selectedPatternId: project.patterns[0]?.id ?? null }),
   resetProject: () => set({ ...createDefaultProject(), selectedChannelId: null, selectedPatternId: null }),

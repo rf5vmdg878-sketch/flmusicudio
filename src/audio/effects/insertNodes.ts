@@ -1038,6 +1038,139 @@ function buildWahSweep(ctx: BaseAudioContext): EffectNode {
   };
 }
 
+// Standard approximate American-English vowel formant frequencies (F1/F2/F3),
+// as commonly cited in acoustic-phonetics references — factual measurement
+// data, not creative expression.
+const VOWEL_FORMANTS: Record<string, [number, number, number]> = {
+  a: [700, 1220, 2600],
+  e: [530, 1840, 2480],
+  i: [270, 2290, 3010],
+  o: [570, 840, 2410],
+  u: [300, 870, 2240],
+};
+
+function buildFormantFilter(ctx: BaseAudioContext): EffectNode {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dryGain = ctx.createGain();
+  const wetGain = ctx.createGain();
+  input.connect(dryGain);
+  dryGain.connect(output);
+  wetGain.connect(output);
+
+  const bands = [0, 1, 2].map(() => {
+    const f = ctx.createBiquadFilter();
+    f.type = 'bandpass';
+    input.connect(f);
+    f.connect(wetGain);
+    return f;
+  });
+
+  const setVowel = (vowel: string) => {
+    const formants = VOWEL_FORMANTS[vowel] ?? VOWEL_FORMANTS.a;
+    bands.forEach((band, i) => (band.frequency.value = formants[i]));
+  };
+  setVowel('a');
+
+  return {
+    input,
+    output,
+    update: (params) => {
+      if (params.type !== 'formant_filter') return;
+      setVowel(params.vowel);
+      bands.forEach((band) => (band.Q.value = params.resonance));
+      dryGain.gain.value = 1 - params.mix;
+      wetGain.gain.value = params.mix;
+    },
+    dispose: () => {
+      [input, output, dryGain, wetGain, ...bands].forEach((n) => n.disconnect());
+    },
+  };
+}
+
+function buildDoubler(ctx: BaseAudioContext): EffectNode {
+  const input = ctx.createGain();
+  const output = ctx.createGain();
+  const dryGain = ctx.createGain();
+  const wetGain = ctx.createGain();
+  input.connect(dryGain);
+  dryGain.connect(output);
+  wetGain.connect(output);
+
+  const maxVoices = 4;
+  const taps = Array.from({ length: maxVoices }, (_, i) => {
+    const delay = ctx.createDelay(0.05);
+    delay.delayTime.value = 0.006 * (i + 1);
+    const panner = ctx.createStereoPanner();
+    panner.pan.value = i % 2 === 0 ? -0.4 : 0.4;
+    const tapGain = ctx.createGain();
+    tapGain.gain.value = 0;
+    input.connect(delay);
+    delay.connect(panner);
+    panner.connect(tapGain);
+    tapGain.connect(wetGain);
+    return { tapGain };
+  });
+
+  return {
+    input,
+    output,
+    update: (params) => {
+      if (params.type !== 'doubler') return;
+      const activeVoices = Math.max(2, Math.min(maxVoices, Math.round(params.voices)));
+      taps.forEach((tap, i) => (tap.tapGain.gain.value = i < activeVoices ? 1 / Math.sqrt(activeVoices) : 0));
+      dryGain.gain.value = 1 - params.mix;
+      wetGain.gain.value = params.mix;
+    },
+    dispose: () => {
+      [input, output, dryGain, wetGain, ...taps.map((t) => t.tapGain)].forEach((n) => n.disconnect());
+    },
+  };
+}
+
+function generatePumpCycleBuffer(ctx: BaseAudioContext, depth: number, holdPercent: number): AudioBuffer {
+  const durationSeconds = 1; // one cycle; played back at rateHz via playbackRate scaling
+  const length = Math.floor(ctx.sampleRate * durationSeconds);
+  const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  const holdSamples = Math.floor(length * Math.max(0.05, Math.min(0.9, holdPercent)));
+  for (let i = 0; i < length; i++) {
+    if (i < holdSamples) {
+      data[i] = 1 - depth;
+    } else {
+      const t = (i - holdSamples) / (length - holdSamples);
+      data[i] = 1 - depth * (1 - t);
+    }
+  }
+  return buffer;
+}
+
+function buildPump(ctx: BaseAudioContext): EffectNode {
+  const gain = ctx.createGain();
+  gain.gain.value = 1;
+  const src = ctx.createBufferSource();
+  src.buffer = generatePumpCycleBuffer(ctx, 0.6, 0.15);
+  src.loop = true;
+  src.playbackRate.value = 2;
+  src.connect(gain.gain);
+  src.start();
+
+  return {
+    input: gain,
+    output: gain,
+    update: (params) => {
+      if (params.type !== 'pump') return;
+      src.playbackRate.value = params.rateHz;
+      src.buffer = generatePumpCycleBuffer(ctx, params.depth, params.holdPercent);
+    },
+    dispose: () => {
+      src.stop();
+      src.disconnect();
+      gain.disconnect();
+    },
+  };
+}
+
 export function buildEffectNode(ctx: BaseAudioContext, params: InsertEffectParams): EffectNode {
   switch (params.type) {
     case 'eq3':
@@ -1092,5 +1225,11 @@ export function buildEffectNode(ctx: BaseAudioContext, params: InsertEffectParam
       return buildTransientShaper(ctx);
     case 'wah_sweep':
       return buildWahSweep(ctx);
+    case 'formant_filter':
+      return buildFormantFilter(ctx);
+    case 'doubler':
+      return buildDoubler(ctx);
+    case 'pump':
+      return buildPump(ctx);
   }
 }

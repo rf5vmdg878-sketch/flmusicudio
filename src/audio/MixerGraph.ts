@@ -5,6 +5,12 @@ interface TrackNodes {
   sum: GainNode;
   panner: StereoPannerNode;
   volume: GainNode;
+  /** Automation-only nodes: never touched by the manual volume/pan sync below,
+   * so a Scheduler-driven ramp on these (see Scheduler's automation handling)
+   * never fights the per-tick store sync. Identity defaults (gain=1, pan=0)
+   * mean "no lane" has no audible effect. */
+  autoGain: GainNode;
+  autoPanner: StereoPannerNode;
   chain: InsertChainHandle;
   chainShape: string;
   connectedToMaster: boolean;
@@ -44,6 +50,18 @@ export class MixerGraph {
     return this.channelNodes.get(channelId)?.gain;
   }
 
+  /** The AudioParam an automation lane drives for mixer-track volume (a 0..1
+   * multiplier layered on top of the manual fader; identity = 1). */
+  getTrackAutomationGainParam(trackId: string): AudioParam | undefined {
+    return this.trackNodes.get(trackId)?.autoGain.gain;
+  }
+
+  /** The AudioParam an automation lane drives for mixer-track pan (a -1..1
+   * offset layered on top of the manual pan; identity = 0). */
+  getTrackAutomationPanParam(trackId: string): AudioParam | undefined {
+    return this.trackNodes.get(trackId)?.autoPanner.pan;
+  }
+
   sync(project: ProjectState): void {
     this.syncTracks(project.mixerTracks);
     this.syncChannels(project.channels);
@@ -60,11 +78,24 @@ export class MixerGraph {
         const sum = this.ctx.createGain();
         const panner = this.ctx.createStereoPanner();
         const volume = this.ctx.createGain();
+        const autoGain = this.ctx.createGain();
+        const autoPanner = this.ctx.createStereoPanner();
         const chain = buildInsertChain(this.ctx, track.inserts);
         sum.connect(chain.input);
         chain.output.connect(panner);
         panner.connect(volume);
-        nodes = { sum, panner, volume, chain, chainShape: insertChainShape(track.inserts), connectedToMaster: false };
+        volume.connect(autoGain);
+        autoGain.connect(autoPanner);
+        nodes = {
+          sum,
+          panner,
+          volume,
+          autoGain,
+          autoPanner,
+          chain,
+          chainShape: insertChainShape(track.inserts),
+          connectedToMaster: false,
+        };
         this.trackNodes.set(track.id, nodes);
       }
 
@@ -92,12 +123,12 @@ export class MixerGraph {
       const nodes = this.trackNodes.get(track.id);
       if (!nodes || nodes.connectedToMaster) continue;
       if (track.id === this.masterTrackId) {
-        nodes.volume.connect(this.ctx.destination);
+        nodes.autoPanner.connect(this.ctx.destination);
         nodes.connectedToMaster = true;
       } else {
         const master = this.trackNodes.get(this.masterTrackId);
         if (master) {
-          nodes.volume.connect(master.sum);
+          nodes.autoPanner.connect(master.sum);
           nodes.connectedToMaster = true;
         }
       }
@@ -109,6 +140,8 @@ export class MixerGraph {
         nodes.sum.disconnect();
         nodes.panner.disconnect();
         nodes.volume.disconnect();
+        nodes.autoGain.disconnect();
+        nodes.autoPanner.disconnect();
         this.trackNodes.delete(id);
       }
     }
@@ -160,6 +193,8 @@ export class MixerGraph {
       nodes.sum.disconnect();
       nodes.panner.disconnect();
       nodes.volume.disconnect();
+      nodes.autoGain.disconnect();
+      nodes.autoPanner.disconnect();
     }
     for (const nodes of this.channelNodes.values()) {
       nodes.gain.disconnect();

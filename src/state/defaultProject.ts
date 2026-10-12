@@ -129,5 +129,6 @@ export function createDefaultProject(): ProjectState {
       masterVolume: 0.9,
     },
     samples: {},
+    automationLanes: [],
   };
 }
