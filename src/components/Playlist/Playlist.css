@@ -1,0 +1,132 @@
+.playlist {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.playlist-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-1);
+  flex-shrink: 0;
+}
+
+.playlist-toolbar label {
+  font-size: 11px;
+  color: var(--text-1);
+}
+
+.playlist-hint {
+  color: var(--text-2);
+  font-size: 11px;
+}
+
+.playlist-spacer {
+  flex: 1;
+}
+
+.playlist-body {
+  flex: 1;
+  padding: 8px;
+}
+
+.playlist-grid {
+  position: relative;
+}
+
+.playlist-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.playlist-track-header {
+  width: 140px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px;
+  position: sticky;
+  left: 0;
+  background: var(--bg-1);
+  z-index: 4;
+  height: 36px;
+}
+
+.track-name {
+  flex: 1;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playlist-lane {
+  position: relative;
+  display: flex;
+  background: #15161e;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.lane-cell {
+  background: transparent;
+  border: none;
+  border-right: 1px solid #1a1c24;
+  padding: 0;
+}
+
+.lane-cell.bar-marker {
+  border-right: 1px solid #2a2d3a;
+}
+
+.lane-cell:hover {
+  background: rgba(108, 92, 231, 0.12);
+}
+
+.playlist-block {
+  position: absolute;
+  top: 3px;
+  background: linear-gradient(180deg, var(--accent), #5a4bd1);
+  border: 1px solid #9c8dff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  cursor: grab;
+  overflow: hidden;
+}
+
+.playlist-block-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.playlist-block-resize {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+.playlist-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent-2);
+  z-index: 10;
+  pointer-events: none;
+}

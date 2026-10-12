@@ -1,0 +1,123 @@
+.piano-roll {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.piano-roll.empty {
+  align-items: center;
+  justify-content: center;
+  color: var(--text-2);
+  padding: 40px;
+  text-align: center;
+}
+
+.piano-roll-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-1);
+  flex-shrink: 0;
+}
+
+.piano-roll-hint {
+  color: var(--text-2);
+  font-size: 11px;
+}
+
+.piano-roll-scroll {
+  flex: 1;
+  padding: 8px;
+}
+
+.piano-roll-layout {
+  display: flex;
+  position: relative;
+}
+
+.keyboard {
+  width: 48px;
+  flex-shrink: 0;
+  position: sticky;
+  left: 0;
+  background: var(--bg-1);
+  z-index: 5;
+}
+
+.key {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4px;
+  font-size: 9px;
+  color: var(--text-2);
+  border-bottom: 1px solid #1a1c24;
+}
+
+.key.white {
+  background: #222530;
+}
+
+.key.black {
+  background: #1a1c24;
+}
+
+.key.c-key {
+  color: var(--accent-2);
+}
+
+.grid-area {
+  position: relative;
+  background: #15161e;
+}
+
+.grid-row {
+  position: absolute;
+  display: flex;
+  border-bottom: 1px solid #1a1c24;
+}
+
+.grid-row.c-row {
+  border-bottom: 1px solid #2a2d3a;
+}
+
+.grid-cell {
+  background: transparent;
+  border: none;
+  border-right: 1px solid #1a1c24;
+  padding: 0;
+}
+
+.grid-cell.beat {
+  border-right: 1px solid #262936;
+}
+
+.grid-cell.playing {
+  background: rgba(0, 217, 192, 0.1);
+}
+
+.grid-cell:hover {
+  background: rgba(108, 92, 231, 0.15);
+}
+
+.note-block {
+  position: absolute;
+  background: var(--accent);
+  border: 1px solid #9c8dff;
+  border-radius: 3px;
+  box-sizing: border-box;
+  z-index: 3;
+}
+
+.note-resize-handle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: ew-resize;
+}

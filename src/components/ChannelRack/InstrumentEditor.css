@@ -1,0 +1,42 @@
+.instrument-editor {
+  width: 300px;
+  flex-shrink: 0;
+  margin-left: 8px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 110px);
+}
+
+.instrument-editor-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.instrument-editor-header input {
+  flex: 1;
+  min-width: 0;
+}
+
+.instrument-editor-body {
+  padding: 10px;
+}
+
+.synth-section {
+  margin-bottom: 14px;
+}
+
+.synth-section-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-2);
+  margin-bottom: 6px;
+}
+
+.sample-name {
+  color: var(--text-0);
+  width: auto;
+}
